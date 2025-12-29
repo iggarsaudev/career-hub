@@ -1,14 +1,25 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   // estado para guardar lo que escribe el usuario
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("login intentado con:", email);
-    // aquí conectaremos con el backend más tarde
+    // validación "tonta" por ahora (luego conectaremos con backend)
+    if (email === "iggarsau@hotmail.com" && password === "admin123") {
+      // guardamos el token falso en el navegador
+      localStorage.setItem("adminToken", "123456");
+      // navegamos al dashboard
+      navigate("/");
+    } else {
+      alert(
+        "Credenciales incorrectas (prueba: iggarsau@hotmail.com / admin123)"
+      );
+    }
   };
 
   return (

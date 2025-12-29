@@ -1,18 +1,24 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* ruta para el login */}
         <Route path="/login" element={<Login />} />
 
-        {/* ruta principal (dashboard) */}
-        <Route path="/" element={<Dashboard />} />
+        {/* ruta protegida: solo accesible si hay token */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
 
-        {/* cualquier otra ruta nos manda al login */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
