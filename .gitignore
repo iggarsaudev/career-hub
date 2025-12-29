@@ -1,0 +1,18 @@
+# dependencias (afecta a root, admin y backend)
+node_modules/
+
+# variables de entorno (MUY IMPORTANTE)
+.env
+.env.local
+
+# archivos de sistema y logs
+.DS_Store
+npm-debug.log*
+
+# build output (frontend y compilados)
+dist/
+build/
+.next/
+
+# archivo personal
+career-hub.txt

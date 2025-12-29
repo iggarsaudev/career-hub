@@ -11,6 +11,33 @@ const PORT = process.env.PORT || 4000;
 app.use(cors());
 app.use(express.json());
 
+// ruta login
+app.post("/api/auth/login", (req, res) => {
+  const { email, password } = req.body;
+
+  // leemos las credenciales del archivo .env
+  const validEmail = process.env.ADMIN_EMAIL;
+  const validPassword = process.env.ADMIN_PASSWORD;
+
+  // validamos
+  if (email === validEmail && password === validPassword) {
+    // login correcto
+    // en un futuro aquí generaremos un jwt real
+    // por ahora devolvemos un token simulado
+    return res.json({
+      success: true,
+      token: "token_secreto_backend_12345",
+      user: { name: "Admin", email: validEmail },
+    });
+  }
+
+  // login incorrecto
+  return res.status(401).json({
+    success: false,
+    error: "credenciales inválidas",
+  });
+});
+
 // ruta perfil
 app.get("/api/profile", async (req, res) => {
   try {

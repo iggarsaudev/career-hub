@@ -7,18 +7,33 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // validación "tonta" por ahora (luego conectaremos con backend)
-    if (email === "iggarsau@hotmail.com" && password === "admin123") {
-      // guardamos el token falso en el navegador
-      localStorage.setItem("adminToken", "123456");
-      // navegamos al dashboard
-      navigate("/");
-    } else {
-      alert(
-        "Credenciales incorrectas (prueba: iggarsau@hotmail.com / admin123)"
-      );
+
+    try {
+      // petición al backend
+      const response = await fetch("http://localhost:4000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // guardamos el token que nos dio el backend
+        localStorage.setItem("adminToken", data.token);
+        // entramos
+        navigate("/");
+      } else {
+        // error del backend
+        alert(data.error || "error al iniciar sesión");
+      }
+    } catch (error) {
+      console.error("error de conexión:", error);
+      alert("no se pudo conectar con el servidor");
     }
   };
 
