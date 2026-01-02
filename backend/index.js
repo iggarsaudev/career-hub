@@ -11,7 +11,8 @@ const PORT = process.env.PORT || 4000;
 app.use(cors());
 app.use(express.json());
 
-// ruta login
+// RUTAS DE USUERIO
+// Login
 app.post("/api/auth/login", (req, res) => {
   const { email, password } = req.body;
 
@@ -38,7 +39,7 @@ app.post("/api/auth/login", (req, res) => {
   });
 });
 
-// ruta perfil
+// Perfil
 app.get("/api/profile", async (req, res) => {
   try {
     const profile = await prisma.profile.findFirst();
@@ -50,7 +51,7 @@ app.get("/api/profile", async (req, res) => {
   }
 });
 
-// actualizar perfil
+// Actualizar perfil
 app.put("/api/profile", async (req, res) => {
   try {
     const { name, title, summary, bio } = req.body;
@@ -73,7 +74,7 @@ app.put("/api/profile", async (req, res) => {
   }
 });
 
-// ruta proyectos
+// RUTAS DE PROYECTOS
 // Obtener todos los proyectos
 app.get("/api/projects", async (req, res) => {
   try {
@@ -86,6 +87,42 @@ app.get("/api/projects", async (req, res) => {
   } catch (error) {
     console.error("error al obtener proyectos:", error);
     res.status(500).json({ error: "error al obtener proyectos" });
+  }
+});
+
+// Crear un nuevo proyecto
+app.post("/api/projects", async (req, res) => {
+  try {
+    // Recibimos 'technologies' (Array de strings)
+    const { title, description, image, link, technologies } = req.body;
+
+    // Generamos el slug automáticamente
+    // Convertimos "Mi Proyecto" -> "mi-proyecto"
+    // Añadimos Date.now() para asegurar que sea único siempre
+    const slug =
+      title
+        .toLowerCase()
+        .replace(/ /g, "-")
+        .replace(/[^\w-]+/g, "") +
+      "-" +
+      Date.now();
+
+    const newProject = await prisma.project.create({
+      data: {
+        title,
+        description,
+        image,
+        slug,
+        repoUrl: link,
+        techStack: technologies || [], // Guardamos el array. Si no viene nada, guardamos array vacío []
+        isVisible: true,
+      },
+    });
+
+    res.json(newProject);
+  } catch (error) {
+    console.error("error al crear proyecto:", error);
+    res.status(500).json({ error: "no se pudo crear el proyecto" });
   }
 });
 
