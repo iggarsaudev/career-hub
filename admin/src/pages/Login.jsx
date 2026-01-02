@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from "../config";
 
 export default function Login() {
   // estado para guardar lo que escribe el usuario
@@ -12,7 +13,7 @@ export default function Login() {
 
     try {
       // petición al backend
-      const response = await fetch("http://localhost:4000/api/auth/login", {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

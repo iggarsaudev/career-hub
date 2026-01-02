@@ -50,6 +50,29 @@ app.get("/api/profile", async (req, res) => {
   }
 });
 
+// actualizar perfil
+app.put("/api/profile", async (req, res) => {
+  try {
+    const { name, title, summary, bio } = req.body;
+
+    // actualizamos el registro con ID 1
+    const updatedProfile = await prisma.profile.update({
+      where: { id: 1 },
+      data: {
+        name,
+        title,
+        summary,
+        bio,
+      },
+    });
+
+    res.json(updatedProfile);
+  } catch (error) {
+    console.error("error al actualizar perfil:", error);
+    res.status(500).json({ error: "no se pudo actualizar el perfil" });
+  }
+});
+
 // ruta proyectos
 app.get("/api/projects", async (req, res) => {
   try {
