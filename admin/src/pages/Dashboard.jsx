@@ -5,21 +5,24 @@ import { API_URL } from "../config";
 export default function Dashboard() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
+  const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false); // ¿Estamos editando?
-  const [formData, setFormData] = useState({}); // Datos temporales del formulario
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({});
 
-  // Cargar datos iniciales
   useEffect(() => {
-    fetch(`${API_URL}/profile`)
-      .then((res) => res.json())
-      .then((data) => {
-        setProfile(data);
-        setFormData(data); // Inicializamos el formulario con los datos actuales
+    Promise.all([
+      fetch(`${API_URL}/profile`).then((res) => res.json()),
+      fetch(`${API_URL}/projects`).then((res) => res.json()),
+    ])
+      .then(([profileData, projectsData]) => {
+        setProfile(profileData);
+        setFormData(profileData);
+        setProjects(projectsData);
         setLoading(false);
       })
       .catch((err) => {
-        console.error("error al cargar perfil:", err);
+        console.error("error al cargar datos:", err);
         setLoading(false);
       });
   }, []);
@@ -29,16 +32,11 @@ export default function Dashboard() {
     navigate("/login");
   };
 
-  // Manejar cambios en los inputs
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Guardar cambios en el Backend
   const handleSave = async () => {
     try {
       const response = await fetch(`${API_URL}/profile`, {
@@ -46,32 +44,29 @@ export default function Dashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-
       if (response.ok) {
         const updatedData = await response.json();
-        setProfile(updatedData); // Actualizamos la vista oficial
-        setIsEditing(false); // Salimos del modo edición
-        alert("¡Perfil actualizado con éxito!");
+        setProfile(updatedData);
+        setIsEditing(false);
+        alert("¡Perfil actualizado!");
       } else {
-        alert("Error al guardar los cambios");
+        alert("Error al guardar");
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error(error);
       alert("Error de conexión");
     }
   };
 
-  // Cancelar edición (volvemos a los datos originales)
   const handleCancel = () => {
     setFormData(profile);
     setIsEditing(false);
   };
 
-  if (loading) return <div className="p-10">Cargando...</div>;
+  if (loading) return <div className="p-10">Cargando datos...</div>;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-10">
-      {/* Navbar */}
       <nav className="bg-white shadow-sm px-6 py-4 flex justify-between items-center mb-8">
         <h1 className="text-xl font-bold text-gray-800">Career Hub Admin</h1>
         <button
@@ -82,21 +77,17 @@ export default function Dashboard() {
         </button>
       </nav>
 
-      {/* Contenido */}
-      <div className="max-w-4xl mx-auto px-6">
+      <div className="max-w-4xl mx-auto px-6 space-y-8">
+        {/* Sección Perfil */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
-          {/* Fondo azul header */}
           <div className="bg-blue-600 h-32 w-full"></div>
-
           <div className="px-8 pb-8">
-            {/* Avatar */}
             <div className="-mt-12 mb-6">
               <div className="h-24 w-24 rounded-full bg-white border-4 border-white shadow-md flex items-center justify-center text-3xl font-bold text-blue-600 uppercase">
                 {profile?.name ? profile.name.charAt(0) : "A"}
               </div>
             </div>
 
-            {/* Formulario de edición */}
             {isEditing ? (
               <div className="space-y-4 animate-fade-in">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -208,6 +199,69 @@ export default function Dashboard() {
               </>
             )}
           </div>
+        </div>
+
+        {/* Sección Proyectos */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-gray-800">Mis Proyectos</h2>
+            <button className="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition">
+              + Nuevo Proyecto
+            </button>
+          </div>
+
+          {projects.length === 0 ? (
+            <p className="text-gray-500 text-center py-8">
+              No hay proyectos todavía.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {projects.map((project) => (
+                <div
+                  key={project.id}
+                  className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition"
+                >
+                  {/* Imagen */}
+                  <div className="h-40 bg-gray-200 w-full object-cover relative">
+                    {project.image ? (
+                      <img
+                        src={project.image}
+                        alt={project.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-gray-400">
+                        Sin imagen
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-4">
+                    <h3 className="font-bold text-lg mb-2 text-gray-800">
+                      {project.title}
+                    </h3>
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                      {project.description}
+                    </p>
+                    <div className="flex justify-between items-center mt-4">
+                      <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                        {/* Aquí podríamos poner tags si los tuviéramos */}
+                        Proyecto
+                      </span>
+                      <div className="flex gap-2">
+                        <button className="text-gray-400 hover:text-blue-600 transition">
+                          ✏️
+                        </button>
+                        <button className="text-gray-400 hover:text-red-600 transition">
+                          🗑️
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

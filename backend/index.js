@@ -74,15 +74,18 @@ app.put("/api/profile", async (req, res) => {
 });
 
 // ruta proyectos
+// Obtener todos los proyectos
 app.get("/api/projects", async (req, res) => {
   try {
     const projects = await prisma.project.findMany({
-      where: { isVisible: true },
+      orderBy: {
+        id: "desc", // Mostramos primero los más nuevos
+      },
     });
     res.json(projects);
   } catch (error) {
     console.error("error al obtener proyectos:", error);
-    res.status(500).json({ error: "error interno del servidor" });
+    res.status(500).json({ error: "error al obtener proyectos" });
   }
 });
 
