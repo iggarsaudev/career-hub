@@ -27,7 +27,7 @@ export default function Login() {
         // guardamos el token que nos dio el backend
         localStorage.setItem("adminToken", data.token);
         // entramos
-        navigate("/");
+        navigate("/admin");
       } else {
         // error del backend
         alert(data.error || "error al iniciar sesión");
