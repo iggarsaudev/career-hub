@@ -6,6 +6,7 @@ require("dotenv").config();
 const authRoutes = require("./routes/authRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const projectRoutes = require("./routes/projectRoutes");
+const uploadRoutes = require("./routes/uploadRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -18,6 +19,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes); // Rutas empiezan con /api/auth
 app.use("/api/profile", profileRoutes); // Rutas empiezan con /api/profile
 app.use("/api/projects", projectRoutes); // Rutas empiezan con /api/projects
+app.use("/api/upload", uploadRoutes); // Rutas empiezan con /api/upload
 
 // Ruta Health Check
 app.get("/", (req, res) => {
