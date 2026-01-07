@@ -1,5 +1,6 @@
 const prisma = require("../config/db");
 
+// Obtener todos
 const getProjects = async (req, res) => {
   try {
     const projects = await prisma.project.findMany({
@@ -12,6 +13,7 @@ const getProjects = async (req, res) => {
   }
 };
 
+// Crear
 const createProject = async (req, res) => {
   try {
     const { title, description, image, link, technologies } = req.body;
@@ -44,4 +46,46 @@ const createProject = async (req, res) => {
   }
 };
 
-module.exports = { getProjects, createProject };
+// Actualizar
+const updateProject = async (req, res) => {
+  const { id } = req.params;
+  const { title, description, image, link, technologies, isVisible } = req.body;
+
+  try {
+    const updatedProject = await prisma.project.update({
+      where: { id: parseInt(id) }, // Importante: convertir ID a entero
+      data: {
+        title,
+        description,
+        image,
+        repoUrl: link, // Mapeamos link (frontend) a repoUrl (db)
+        techStack: technologies, // Prisma actualizará el array completo
+        isVisible,
+      },
+    });
+    res.json(updatedProject);
+  } catch (error) {
+    console.error("Error actualizando proyecto:", error);
+    // Prisma lanza error si no encuentra el ID
+    res
+      .status(500)
+      .json({ error: "No se pudo actualizar (posible ID inválido)" });
+  }
+};
+
+// Eliminar
+const deleteProject = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await prisma.project.delete({
+      where: { id: parseInt(id) },
+    });
+    res.json({ message: "Proyecto eliminado correctamente" });
+  } catch (error) {
+    console.error("Error eliminando proyecto:", error);
+    res.status(500).json({ error: "No se pudo eliminar el proyecto" });
+  }
+};
+
+module.exports = { getProjects, createProject, updateProject, deleteProject };

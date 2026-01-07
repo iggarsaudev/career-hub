@@ -12,12 +12,13 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState(null);
 
-  // Estados de edición Perfil
+  // Estados Perfil
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({});
 
-  // Estados de creación Proyecto
-  const [isCreatingProject, setIsCreatingProject] = useState(false);
+  // Estados Proyecto (Creación/Edición)
+  const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
+  const [editingProjectId, setEditingProjectId] = useState(null);
   const [projectForm, setProjectForm] = useState({
     title: "",
     description: "",
@@ -26,39 +27,48 @@ export default function Dashboard() {
     technologies: "",
   });
 
-  // Función para mostrar las notificaciones
+  // Estado para el Modal de Borrado
+  const [projectToDelete, setProjectToDelete] = useState(null);
+
+  // Notificaciones
   const showNotification = (message, type = "success") => {
     setNotification({ message, type });
-    // Se oculta sola a los 3 segundos
     setTimeout(() => {
       setNotification(null);
     }, 3000);
   };
-
-  // Carga inicial
-  useEffect(() => {
-    Promise.all([
-      fetch(`${API_URL}/profile`).then((res) => res.json()),
-      fetch(`${API_URL}/projects`).then((res) => res.json()),
-    ])
-      .then(([profileData, projectsData]) => {
-        setProfile(profileData);
-        setProfileForm(profileData);
-        setProjects(projectsData);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setLoading(false);
-      });
-  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("adminToken");
     navigate("/");
   };
 
-  // Handles perfil
+  // Carga inicial
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [profileRes, projectsRes] = await Promise.all([
+          fetch(`${API_URL}/profile`),
+          fetch(`${API_URL}/projects`),
+        ]);
+
+        const profileData = await profileRes.json();
+        const projectsData = await projectsRes.json();
+
+        setProfile(profileData);
+        setProfileForm(profileData);
+        setProjects(projectsData);
+        setLoading(false);
+      } catch (err) {
+        console.error(err);
+        setLoading(false);
+        showNotification("Error cargando datos", "error");
+      }
+    };
+    fetchData();
+  }, []);
+
+  // Lógica del perfil
   const handleProfileChange = (e) => {
     const { name, value } = e.target;
     setProfileForm((prev) => ({ ...prev, [name]: value }));
@@ -81,50 +91,113 @@ export default function Dashboard() {
     }
   };
 
-  // Handles proyectos
+  // Lógica de los proyectos
   const handleProjectChange = (e) => {
     const { name, value } = e.target;
     setProjectForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleCreateProject = async (e) => {
+  // Preparar formulario para Editar
+  const startEditing = (project) => {
+    setEditingProjectId(project.id);
+    setProjectForm({
+      title: project.title,
+      description: project.description,
+      image: project.image || "",
+      link: project.repoUrl || "",
+      technologies: project.techStack ? project.techStack.join(", ") : "",
+    });
+    setIsProjectFormOpen(true);
+    // Scroll suave hacia el formulario
+    window.scrollTo({ top: 400, behavior: "smooth" });
+  };
+
+  // Resetear formulario
+  const resetProjectForm = () => {
+    setIsProjectFormOpen(false);
+    setEditingProjectId(null);
+    setProjectForm({
+      title: "",
+      description: "",
+      image: "",
+      link: "",
+      technologies: "",
+    });
+  };
+
+  // Guardar (Crear o Editar)
+  const handleSaveProject = async (e) => {
     e.preventDefault();
     try {
-      // Convertimos el texto "React, Node" en array ["React", "Node"]
       const techArray = projectForm.technologies
         .split(",")
-        .map((t) => t.trim()) // quitamos espacios
-        .filter((t) => t.length > 0); // quitamos vacíos
+        .map((t) => t.trim())
+        .filter((t) => t.length > 0);
 
       const payload = {
         ...projectForm,
-        technologies: techArray, // enviamos el array al backend
+        technologies: techArray,
+        isVisible: true,
       };
 
-      const res = await fetch(`${API_URL}/projects`, {
-        method: "POST",
+      const method = editingProjectId ? "PUT" : "POST";
+      const url = editingProjectId
+        ? `${API_URL}/projects/${editingProjectId}`
+        : `${API_URL}/projects`;
+
+      const res = await fetch(url, {
+        method: method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       if (res.ok) {
-        const newProject = await res.json();
-        setProjects([newProject, ...projects]);
-        setIsCreatingProject(false);
-        setProjectForm({
-          title: "",
-          description: "",
-          image: "",
-          link: "",
-          technologies: "",
-        });
-        showNotification("Proyecto creado con éxito", "success");
+        const savedProject = await res.json();
+        if (editingProjectId) {
+          // Actualizar en la lista local
+          setProjects(
+            projects.map((p) => (p.id === editingProjectId ? savedProject : p))
+          );
+          showNotification("Proyecto actualizado con éxito", "success");
+        } else {
+          // Añadir a la lista local
+          setProjects([savedProject, ...projects]);
+          showNotification("Proyecto creado con éxito", "success");
+        }
+        resetProjectForm();
       } else {
-        showNotification("Error al crear proyecto", "error");
+        showNotification("Error al guardar proyecto", "error");
       }
     } catch (error) {
       console.error(error);
-      showNotification("Error de conexión con el servidor", "error");
+      showNotification("Error de conexión", "error");
+    }
+  };
+
+  // Lógica de borrado
+  const requestDelete = (project) => {
+    setProjectToDelete(project);
+  };
+
+  const confirmDeleteProject = async () => {
+    if (!projectToDelete) return;
+
+    try {
+      const res = await fetch(`${API_URL}/projects/${projectToDelete.id}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        setProjects(projects.filter((p) => p.id !== projectToDelete.id));
+        showNotification("Proyecto eliminado correctamente", "success");
+      } else {
+        showNotification("No se pudo eliminar el proyecto", "error");
+      }
+    } catch (error) {
+      console.error(error);
+      showNotification("Error de conexión", "error");
+    } finally {
+      setProjectToDelete(null); // Cerrar modal siempre
     }
   };
 
@@ -136,7 +209,7 @@ export default function Dashboard() {
     );
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-10">
+    <div className="min-h-screen bg-gray-50 pb-10 relative">
       {/* Navbar */}
       <nav className="bg-white shadow-sm px-6 py-4 flex justify-between items-center mb-8 sticky top-0 z-10">
         <h1 className="text-xl font-bold text-gray-800">Career Hub Admin</h1>
@@ -153,11 +226,11 @@ export default function Dashboard() {
         </div>
       </nav>
 
+      {/* Container Principal */}
       <div className="max-w-4xl mx-auto px-6 space-y-8">
         {/* Sección perfil */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
           <div className="bg-blue-600 h-32 w-full"></div>
-
           <div className="px-8 pb-8">
             <div className="-mt-12 mb-6">
               <div className="h-24 w-24 rounded-full bg-white border-4 border-white shadow-md flex items-center justify-center text-3xl font-bold text-blue-600 uppercase">
@@ -166,7 +239,7 @@ export default function Dashboard() {
             </div>
 
             {isEditingProfile ? (
-              /* Edición perfil */
+              /* Formulario Perfil */
               <div className="space-y-4 animate-fade-in bg-gray-50 p-6 rounded-lg border border-gray-200">
                 <h3 className="font-bold text-gray-700 mb-2">
                   Editando Perfil
@@ -235,7 +308,7 @@ export default function Dashboard() {
                 </div>
               </div>
             ) : (
-              /* Vista perfil */
+              /* Vista Perfil */
               <>
                 <div className="flex justify-between items-start mb-6">
                   <div>
@@ -253,7 +326,6 @@ export default function Dashboard() {
                     Editar Perfil
                   </button>
                 </div>
-
                 <div className="space-y-6">
                   <div>
                     <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
@@ -281,9 +353,12 @@ export default function Dashboard() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-gray-800">Mis Proyectos</h2>
-            {!isCreatingProject && (
+            {!isProjectFormOpen && (
               <button
-                onClick={() => setIsCreatingProject(true)}
+                onClick={() => {
+                  resetProjectForm();
+                  setIsProjectFormOpen(true);
+                }}
                 className="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition shadow-sm"
               >
                 + Nuevo Proyecto
@@ -291,89 +366,109 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Nuevo proyecto */}
-          {isCreatingProject && (
-            <div className="mb-8 p-6 bg-blue-50 rounded-xl border border-blue-100 animate-fade-in">
-              <h3 className="font-bold text-blue-900 mb-4">
-                Añadir Nuevo Proyecto
+          {/* Formulario de Proyecto (Crear / Editar) */}
+          {isProjectFormOpen && (
+            <div
+              className={`mb-8 p-6 rounded-xl border animate-fade-in ${
+                editingProjectId
+                  ? "bg-indigo-50 border-indigo-100"
+                  : "bg-blue-50 border-blue-100"
+              }`}
+            >
+              <h3
+                className={`font-bold mb-4 ${
+                  editingProjectId ? "text-indigo-900" : "text-blue-900"
+                }`}
+              >
+                {editingProjectId
+                  ? "✏️ Editar Proyecto"
+                  : "✨ Añadir Nuevo Proyecto"}
               </h3>
-              <form onSubmit={handleCreateProject} className="space-y-4">
+
+              <form onSubmit={handleSaveProject} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-blue-800 mb-1">
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
                     Título
                   </label>
                   <input
                     name="title"
                     value={projectForm.title}
                     onChange={handleProjectChange}
-                    className="w-full p-2 border border-blue-200 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
                     placeholder="Ej: E-commerce con React"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-blue-800 mb-1">
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
                     Descripción
                   </label>
                   <textarea
                     name="description"
                     value={projectForm.description}
                     onChange={handleProjectChange}
-                    className="w-full p-2 border border-blue-200 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
                     rows="3"
                     placeholder="Describe brevemente las tecnologías usadas..."
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-blue-800 mb-1">
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
                     Tecnologías (separadas por comas)
                   </label>
                   <input
                     name="technologies"
                     value={projectForm.technologies}
                     onChange={handleProjectChange}
-                    className="w-full p-2 border border-blue-200 rounded outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Ej: React, Node.js, Tailwind, MongoDB"
+                    className="w-full p-2 border border-gray-300 rounded outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Ej: React, Node.js, Tailwind"
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-blue-800 mb-1">
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
                       URL Imagen
                     </label>
                     <input
                       name="image"
                       value={projectForm.image}
                       onChange={handleProjectChange}
-                      className="w-full p-2 border border-blue-200 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                      className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
                       placeholder="https://..."
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-blue-800 mb-1">
-                      Enlace al Proyecto
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Enlace al Proyecto (Repo)
                     </label>
                     <input
                       name="link"
                       value={projectForm.link}
                       onChange={handleProjectChange}
-                      className="w-full p-2 border border-blue-200 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                      className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
                       placeholder="https://github.com/..."
                     />
                   </div>
                 </div>
+
                 <div className="flex gap-3 pt-2">
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition shadow-sm font-medium"
+                    className={`px-4 py-2 text-white rounded shadow-sm font-medium transition ${
+                      editingProjectId
+                        ? "bg-indigo-600 hover:bg-indigo-700"
+                        : "bg-blue-600 hover:bg-blue-700"
+                    }`}
                   >
-                    Crear Proyecto
+                    {editingProjectId
+                      ? "Actualizar Proyecto"
+                      : "Crear Proyecto"}
                   </button>
                   <button
                     type="button"
-                    onClick={() => setIsCreatingProject(false)}
-                    className="px-4 py-2 bg-white text-blue-700 border border-blue-200 rounded hover:bg-blue-50 transition font-medium"
+                    onClick={resetProjectForm}
+                    className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-50 transition font-medium"
                   >
                     Cancelar
                   </button>
@@ -382,8 +477,8 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Lista de proyectos */}
-          {projects.length === 0 && !isCreatingProject ? (
+          {/* Lista de Proyectos */}
+          {projects.length === 0 && !isProjectFormOpen ? (
             <p className="text-gray-400 text-center py-10 italic">
               No tienes proyectos visibles. ¡Añade uno!
             </p>
@@ -392,8 +487,9 @@ export default function Dashboard() {
               {projects.map((project) => (
                 <div
                   key={project.id}
-                  className="group border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition duration-300 bg-white"
+                  className="group border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition duration-300 bg-white flex flex-col"
                 >
+                  {/* Imagen */}
                   <div className="h-48 bg-gray-100 w-full relative overflow-hidden">
                     {project.image ? (
                       <img
@@ -409,7 +505,8 @@ export default function Dashboard() {
                     )}
                   </div>
 
-                  <div className="p-5">
+                  {/* Contenido */}
+                  <div className="p-5 flex-1 flex flex-col">
                     <h3 className="font-bold text-lg mb-2 text-gray-800">
                       {project.title}
                     </h3>
@@ -429,31 +526,36 @@ export default function Dashboard() {
                       </div>
                     )}
 
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2 h-10 leading-5">
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
                       {project.description}
                     </p>
 
-                    <div className="flex justify-between items-center pt-4 border-t border-gray-100">
+                    <div className="mt-auto flex justify-between items-center pt-4 border-t border-gray-100">
+                      {/* Enlace Repo */}
                       <a
-                        href={project.repoUrl ? "Ver Proyecto ↗" : "Sin enlace"}
+                        href={project.repoUrl || "#"}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={`text-xs font-bold px-3 py-1.5 rounded-full transition ${
-                          project.link
+                          project.repoUrl
                             ? "text-blue-700 bg-blue-50 hover:bg-blue-100"
                             : "text-gray-400 bg-gray-100 cursor-not-allowed"
                         }`}
                       >
-                        {project.link ? "Ver Proyecto ↗" : "Sin enlace"}
+                        {project.repoUrl ? "Ver Repo ↗" : "Sin enlace"}
                       </a>
+
+                      {/* Botones de Acción */}
                       <div className="flex gap-2 opacity-60 group-hover:opacity-100 transition">
                         <button
-                          className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition"
+                          onClick={() => startEditing(project)}
+                          className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded transition"
                           title="Editar"
                         >
                           ✏️
                         </button>
                         <button
+                          onClick={() => requestDelete(project)}
                           className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition"
                           title="Eliminar"
                         >
@@ -468,6 +570,43 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      {/* Modal de confirmación */}
+      {projectToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden transform transition-all scale-100">
+            <div className="p-6">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4 mx-auto">
+                <span className="text-2xl">⚠️</span>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 text-center mb-2">
+                ¿Eliminar Proyecto?
+              </h3>
+              <p className="text-gray-500 text-center text-sm mb-6">
+                Estás a punto de eliminar{" "}
+                <strong>"{projectToDelete.title}"</strong>. Esta acción no se
+                puede deshacer.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setProjectToDelete(null)}
+                  className="flex-1 px-4 py-2 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmDeleteProject}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition shadow-md"
+                >
+                  Sí, Eliminar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Componente de notificación */}
       {notification && (
         <div
