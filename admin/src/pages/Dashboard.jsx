@@ -7,9 +7,10 @@ import ImageUpload from "../components/ImageUpload";
 export default function Dashboard() {
   const navigate = useNavigate();
 
-  // Estados
+  // Estados globales
   const [profile, setProfile] = useState(null);
   const [projects, setProjects] = useState([]);
+  const [experiences, setExperiences] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState(null);
 
@@ -17,7 +18,7 @@ export default function Dashboard() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({});
 
-  // Estados Proyecto (Creación/Edición)
+  // Estados Proyecto
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState(null);
   const [projectForm, setProjectForm] = useState({
@@ -27,11 +28,21 @@ export default function Dashboard() {
     link: "",
     technologies: "",
   });
-
-  // Estado para el Modal de Borrado
   const [projectToDelete, setProjectToDelete] = useState(null);
 
-  // Notificaciones
+  // Estados Experiencia Laboral
+  const [isExperienceFormOpen, setIsExperienceFormOpen] = useState(false);
+  const [editingExperienceId, setEditingExperienceId] = useState(null); // <--- NUEVO
+  const [experienceForm, setExperienceForm] = useState({
+    position: "",
+    company: "",
+    startDate: "",
+    endDate: "",
+    description: "",
+    isVisible: true,
+  });
+
+  // Utilidades
   const showNotification = (message, type = "success") => {
     setNotification({ message, type });
     setTimeout(() => {
@@ -39,26 +50,43 @@ export default function Dashboard() {
     }, 3000);
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return "Actualidad";
+    return new Date(dateString).toLocaleDateString("es-ES", {
+      year: "numeric",
+      month: "short",
+    });
+  };
+
+  // Helper para formato input date (YYYY-MM-DD)
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return "";
+    return new Date(dateString).toISOString().split("T")[0];
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("adminToken");
     navigate("/");
   };
 
-  // Carga inicial
+  // Carga incial
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [profileRes, projectsRes] = await Promise.all([
+        const [profileRes, projectsRes, experienceRes] = await Promise.all([
           fetch(`${API_URL}/profile`),
           fetch(`${API_URL}/projects`),
+          fetch(`${API_URL}/experience`),
         ]);
 
         const profileData = await profileRes.json();
         const projectsData = await projectsRes.json();
+        const experienceData = await experienceRes.json();
 
         setProfile(profileData);
         setProfileForm(profileData);
         setProjects(projectsData);
+        setExperiences(experienceData);
         setLoading(false);
       } catch (err) {
         console.error(err);
@@ -69,7 +97,7 @@ export default function Dashboard() {
     fetchData();
   }, []);
 
-  // Lógica del perfil
+  // Lógica perfil
   const handleProfileChange = (e) => {
     const { name, value } = e.target;
     setProfileForm((prev) => ({ ...prev, [name]: value }));
@@ -85,21 +113,20 @@ export default function Dashboard() {
       if (res.ok) {
         setProfile(await res.json());
         setIsEditingProfile(false);
-        showNotification("Perfil actualizado correctamente", "success");
+        showNotification("Perfil actualizado", "success");
       }
     } catch (error) {
       showNotification("Error al actualizar perfil", "error");
     }
   };
 
-  // Lógica de los proyectos
+  // Lógica proyectos
   const handleProjectChange = (e) => {
     const { name, value } = e.target;
     setProjectForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Preparar formulario para Editar
-  const startEditing = (project) => {
+  const startEditingProject = (project) => {
     setEditingProjectId(project.id);
     setProjectForm({
       title: project.title,
@@ -109,11 +136,9 @@ export default function Dashboard() {
       technologies: project.techStack ? project.techStack.join(", ") : "",
     });
     setIsProjectFormOpen(true);
-    // Scroll suave hacia el formulario
     window.scrollTo({ top: 400, behavior: "smooth" });
   };
 
-  // Resetear formulario
   const resetProjectForm = () => {
     setIsProjectFormOpen(false);
     setEditingProjectId(null);
@@ -126,7 +151,6 @@ export default function Dashboard() {
     });
   };
 
-  // Guardar (Crear o Editar)
   const handleSaveProject = async (e) => {
     e.preventDefault();
     try {
@@ -155,19 +179,129 @@ export default function Dashboard() {
       if (res.ok) {
         const savedProject = await res.json();
         if (editingProjectId) {
-          // Actualizar en la lista local
           setProjects(
             projects.map((p) => (p.id === editingProjectId ? savedProject : p))
           );
-          showNotification("Proyecto actualizado con éxito", "success");
+          showNotification("Proyecto actualizado", "success");
         } else {
-          // Añadir a la lista local
           setProjects([savedProject, ...projects]);
-          showNotification("Proyecto creado con éxito", "success");
+          showNotification("Proyecto creado", "success");
         }
         resetProjectForm();
       } else {
         showNotification("Error al guardar proyecto", "error");
+      }
+    } catch (error) {
+      showNotification("Error de conexión", "error");
+    }
+  };
+
+  const requestDeleteProject = (project) => {
+    setProjectToDelete(project);
+  };
+
+  const confirmDeleteProject = async () => {
+    if (!projectToDelete) return;
+    try {
+      const res = await fetch(`${API_URL}/projects/${projectToDelete.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setProjects(projects.filter((p) => p.id !== projectToDelete.id));
+        showNotification("Proyecto eliminado", "success");
+      }
+    } catch (error) {
+      showNotification("Error al eliminar", "error");
+    } finally {
+      setProjectToDelete(null);
+    }
+  };
+
+  // Lógica experiencia
+  const handleExperienceChange = (e) => {
+    const { name, value } = e.target;
+    setExperienceForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Iniciar Edición
+  const startEditingExperience = (exp) => {
+    setEditingExperienceId(exp.id);
+    setExperienceForm({
+      position: exp.position,
+      company: exp.company,
+      startDate: formatDateForInput(exp.startDate),
+      endDate: formatDateForInput(exp.endDate),
+      description: exp.description,
+      isVisible: exp.isVisible,
+    });
+    setIsExperienceFormOpen(true);
+    // Scroll a la zona del formulario de experiencia
+    window.scrollTo({ top: 800, behavior: "smooth" });
+  };
+
+  // Resetear Formulario
+  const resetExperienceForm = () => {
+    setIsExperienceFormOpen(false);
+    setEditingExperienceId(null);
+    setExperienceForm({
+      position: "",
+      company: "",
+      startDate: "",
+      endDate: "",
+      description: "",
+      isVisible: true,
+    });
+  };
+
+  // Guardar (Crear o Editar)
+  const handleSaveExperience = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        ...experienceForm,
+        endDate: experienceForm.endDate || null,
+      };
+
+      const method = editingExperienceId ? "PUT" : "POST";
+      const url = editingExperienceId
+        ? `${API_URL}/experience/${editingExperienceId}`
+        : `${API_URL}/experience`;
+
+      const res = await fetch(url, {
+        method: method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        const savedExp = await res.json();
+
+        setExperiences((prev) => {
+          let updatedList;
+          if (editingExperienceId) {
+            // Reemplazar la existente
+            updatedList = prev.map((e) =>
+              e.id === editingExperienceId ? savedExp : e
+            );
+          } else {
+            // Añadir nueva
+            updatedList = [...prev, savedExp];
+          }
+          // Reordenar siempre por fecha
+          return updatedList.sort(
+            (a, b) => new Date(b.startDate) - new Date(a.startDate)
+          );
+        });
+
+        resetExperienceForm();
+        showNotification(
+          editingExperienceId
+            ? "Experiencia actualizada"
+            : "Experiencia añadida",
+          "success"
+        );
+      } else {
+        showNotification("Error al guardar experiencia", "error");
       }
     } catch (error) {
       console.error(error);
@@ -175,30 +309,18 @@ export default function Dashboard() {
     }
   };
 
-  // Lógica de borrado
-  const requestDelete = (project) => {
-    setProjectToDelete(project);
-  };
-
-  const confirmDeleteProject = async () => {
-    if (!projectToDelete) return;
-
+  const handleDeleteExperience = async (id) => {
+    if (!window.confirm("¿Eliminar esta experiencia?")) return;
     try {
-      const res = await fetch(`${API_URL}/projects/${projectToDelete.id}`, {
+      const res = await fetch(`${API_URL}/experience/${id}`, {
         method: "DELETE",
       });
-
       if (res.ok) {
-        setProjects(projects.filter((p) => p.id !== projectToDelete.id));
-        showNotification("Proyecto eliminado correctamente", "success");
-      } else {
-        showNotification("No se pudo eliminar el proyecto", "error");
+        setExperiences(experiences.filter((e) => e.id !== id));
+        showNotification("Experiencia eliminada", "success");
       }
     } catch (error) {
-      console.error(error);
-      showNotification("Error de conexión", "error");
-    } finally {
-      setProjectToDelete(null); // Cerrar modal siempre
+      showNotification("Error al eliminar", "error");
     }
   };
 
@@ -211,7 +333,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-10 relative">
-      {/* Navbar */}
       <nav className="bg-white shadow-sm px-6 py-4 flex justify-between items-center mb-8 sticky top-0 z-10">
         <h1 className="text-xl font-bold text-gray-800">Career Hub Admin</h1>
         <div className="flex items-center gap-4">
@@ -227,9 +348,8 @@ export default function Dashboard() {
         </div>
       </nav>
 
-      {/* Container Principal */}
-      <div className="max-w-4xl mx-auto px-6 space-y-8">
-        {/* Sección perfil */}
+      <div className="max-w-4xl mx-auto px-6 space-y-12">
+        {/* Perfil */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
           <div className="bg-blue-600 h-32 w-full"></div>
           <div className="px-8 pb-8">
@@ -240,7 +360,6 @@ export default function Dashboard() {
             </div>
 
             {isEditingProfile ? (
-              /* Formulario Perfil */
               <div className="space-y-4 animate-fade-in bg-gray-50 p-6 rounded-lg border border-gray-200">
                 <h3 className="font-bold text-gray-700 mb-2">
                   Editando Perfil
@@ -259,7 +378,7 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <label className="text-xs font-semibold text-gray-500">
-                      Título Profesional
+                      Título
                     </label>
                     <input
                       name="title"
@@ -271,7 +390,7 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500">
-                    Resumen Corto
+                    Resumen
                   </label>
                   <textarea
                     name="summary"
@@ -283,7 +402,7 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500">
-                    Biografía Completa
+                    Biografía
                   </label>
                   <textarea
                     name="bio"
@@ -298,7 +417,7 @@ export default function Dashboard() {
                     onClick={handleSaveProfile}
                     className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
                   >
-                    Guardar Cambios
+                    Guardar
                   </button>
                   <button
                     onClick={() => setIsEditingProfile(false)}
@@ -309,7 +428,6 @@ export default function Dashboard() {
                 </div>
               </div>
             ) : (
-              /* Vista Perfil */
               <>
                 <div className="flex justify-between items-start mb-6">
                   <div>
@@ -350,7 +468,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Sección proyectos */}
+        {/* Proyectos */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-gray-800">Mis Proyectos</h2>
@@ -367,7 +485,6 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Formulario de Proyecto (Crear / Editar) */}
           {isProjectFormOpen && (
             <div
               className={`mb-8 p-6 rounded-xl border animate-fade-in ${
@@ -385,7 +502,6 @@ export default function Dashboard() {
                   ? "✏️ Editar Proyecto"
                   : "✨ Añadir Nuevo Proyecto"}
               </h3>
-
               <form onSubmit={handleSaveProject} className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1">
@@ -410,25 +526,11 @@ export default function Dashboard() {
                     onChange={handleProjectChange}
                     className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
                     rows="3"
-                    placeholder="Describe brevemente las tecnologías usadas..."
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">
-                    Tecnologías (separadas por comas)
-                  </label>
-                  <input
-                    name="technologies"
-                    value={projectForm.technologies}
-                    onChange={handleProjectChange}
-                    className="w-full p-2 border border-gray-300 rounded outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Ej: React, Node.js, Tailwind"
-                  />
-                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="col-span-1">
-                    {" "}
+                  <div className="col-span-1 md:col-span-2">
                     <ImageUpload
                       value={projectForm.image}
                       onChange={(newUrl) =>
@@ -436,20 +538,32 @@ export default function Dashboard() {
                       }
                     />
                   </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-gray-700 mb-1">
-                      Enlace al Proyecto (Repo)
+                      Tecnologías
+                    </label>
+                    <input
+                      name="technologies"
+                      value={projectForm.technologies}
+                      onChange={handleProjectChange}
+                      className="w-full p-2 border border-gray-300 rounded outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Ej: React, Node.js"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Enlace Repo
                     </label>
                     <input
                       name="link"
                       value={projectForm.link}
                       onChange={handleProjectChange}
                       className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                      placeholder="https://github.com/..."
                     />
                   </div>
                 </div>
-
                 <div className="flex gap-3 pt-2">
                   <button
                     type="submit"
@@ -475,10 +589,9 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Lista de Proyectos */}
           {projects.length === 0 && !isProjectFormOpen ? (
             <p className="text-gray-400 text-center py-10 italic">
-              No tienes proyectos visibles. ¡Añade uno!
+              No tienes proyectos.
             </p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -487,7 +600,6 @@ export default function Dashboard() {
                   key={project.id}
                   className="group border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition duration-300 bg-white flex flex-col"
                 >
-                  {/* Imagen */}
                   <div className="h-48 bg-gray-100 w-full relative overflow-hidden">
                     {project.image ? (
                       <img
@@ -498,69 +610,218 @@ export default function Dashboard() {
                     ) : (
                       <div className="flex flex-col items-center justify-center h-full text-gray-400">
                         <span className="text-4xl mb-2">📷</span>
-                        <span className="text-xs">Sin imagen</span>
                       </div>
                     )}
                   </div>
-
-                  {/* Contenido */}
                   <div className="p-5 flex-1 flex flex-col">
                     <h3 className="font-bold text-lg mb-2 text-gray-800">
                       {project.title}
                     </h3>
-
-                    {project.techStack && project.techStack.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {project.techStack.map((tech, index) => (
-                          <span
-                            key={index}
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getTechColor(
-                              tech
-                            )}`}
-                          >
-                            {tech}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {project.techStack?.map((tech, i) => (
+                        <span
+                          key={i}
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getTechColor(
+                            tech
+                          )}`}
+                        >
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
                     <p className="text-gray-600 text-sm mb-4 line-clamp-2">
                       {project.description}
                     </p>
-
-                    <div className="mt-auto flex justify-between items-center pt-4 border-t border-gray-100">
-                      {/* Enlace Repo */}
-                      <a
-                        href={project.repoUrl || "#"}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`text-xs font-bold px-3 py-1.5 rounded-full transition ${
-                          project.repoUrl
-                            ? "text-blue-700 bg-blue-50 hover:bg-blue-100"
-                            : "text-gray-400 bg-gray-100 cursor-not-allowed"
-                        }`}
+                    <div className="mt-auto flex justify-end gap-2 pt-4 border-t border-gray-100">
+                      <button
+                        onClick={() => startEditingProject(project)}
+                        className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded"
                       >
-                        {project.repoUrl ? "Ver Repo ↗" : "Sin enlace"}
-                      </a>
-
-                      {/* Botones de Acción */}
-                      <div className="flex gap-2 opacity-60 group-hover:opacity-100 transition">
-                        <button
-                          onClick={() => startEditing(project)}
-                          className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded transition"
-                          title="Editar"
-                        >
-                          ✏️
-                        </button>
-                        <button
-                          onClick={() => requestDelete(project)}
-                          className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition"
-                          title="Eliminar"
-                        >
-                          🗑️
-                        </button>
-                      </div>
+                        ✏️
+                      </button>
+                      <button
+                        onClick={() => requestDeleteProject(project)}
+                        className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded"
+                      >
+                        🗑️
+                      </button>
                     </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Experiencia laboral */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-gray-800">
+              Experiencia Laboral
+            </h2>
+            {!isExperienceFormOpen && (
+              <button
+                onClick={() => {
+                  resetExperienceForm();
+                  setIsExperienceFormOpen(true);
+                }}
+                className="px-4 py-2 bg-green-600 text-white text-sm font-bold rounded-lg hover:bg-green-700 transition shadow-sm"
+              >
+                + Añadir Experiencia
+              </button>
+            )}
+          </div>
+
+          {isExperienceFormOpen && (
+            <div
+              className={`mb-8 p-6 rounded-xl border animate-fade-in ${
+                editingExperienceId
+                  ? "bg-emerald-50 border-emerald-100"
+                  : "bg-green-50 border-green-100"
+              }`}
+            >
+              <h3
+                className={`font-bold mb-4 ${
+                  editingExperienceId ? "text-emerald-900" : "text-green-900"
+                }`}
+              >
+                {editingExperienceId
+                  ? "💼 Editar Experiencia"
+                  : "💼 Nueva Experiencia"}
+              </h3>
+              <form onSubmit={handleSaveExperience} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Cargo / Puesto
+                    </label>
+                    <input
+                      name="position"
+                      value={experienceForm.position}
+                      onChange={handleExperienceChange}
+                      className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 outline-none"
+                      placeholder="Ej: Senior Frontend Developer"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Empresa
+                    </label>
+                    <input
+                      name="company"
+                      value={experienceForm.company}
+                      onChange={handleExperienceChange}
+                      className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 outline-none"
+                      placeholder="Ej: Google"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Fecha Inicio
+                    </label>
+                    <input
+                      type="date"
+                      name="startDate"
+                      value={experienceForm.startDate}
+                      onChange={handleExperienceChange}
+                      className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 outline-none"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Fecha Fin (Dejar vacío si es actual)
+                    </label>
+                    <input
+                      type="date"
+                      name="endDate"
+                      value={experienceForm.endDate}
+                      onChange={handleExperienceChange}
+                      className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 outline-none"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                    Descripción
+                  </label>
+                  <textarea
+                    name="description"
+                    value={experienceForm.description}
+                    onChange={handleExperienceChange}
+                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 outline-none"
+                    rows="3"
+                    placeholder="Responsabilidades y logros..."
+                    required
+                  />
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="submit"
+                    className={`px-4 py-2 text-white rounded shadow-sm font-medium transition ${
+                      editingExperienceId
+                        ? "bg-emerald-600 hover:bg-emerald-700"
+                        : "bg-green-600 hover:bg-green-700"
+                    }`}
+                  >
+                    {editingExperienceId
+                      ? "Actualizar Experiencia"
+                      : "Guardar Experiencia"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resetExperienceForm}
+                    className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-50 transition font-medium"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {experiences.length === 0 && !isExperienceFormOpen ? (
+            <p className="text-gray-400 text-center py-10 italic">
+              Aún no has añadido experiencia laboral.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {experiences.map((exp) => (
+                <div
+                  key={exp.id}
+                  className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition flex flex-col md:flex-row justify-between items-start gap-4"
+                >
+                  <div>
+                    <h4 className="font-bold text-gray-800 text-lg">
+                      {exp.position}
+                    </h4>
+                    <p className="text-green-700 font-medium mb-1">
+                      {exp.company}
+                    </p>
+                    <p className="text-xs text-gray-500 mb-3">
+                      {formatDate(exp.startDate)} - {formatDate(exp.endDate)}
+                    </p>
+                    <p className="text-gray-600 text-sm">{exp.description}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => startEditingExperience(exp)}
+                      className="text-gray-400 hover:text-emerald-600 transition p-2 hover:bg-emerald-50 rounded"
+                      title="Editar experiencia"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      onClick={() => handleDeleteExperience(exp.id)}
+                      className="text-gray-400 hover:text-red-600 transition p-2 hover:bg-red-50 rounded"
+                      title="Eliminar experiencia"
+                    >
+                      🗑️
+                    </button>
                   </div>
                 </div>
               ))}
@@ -569,10 +830,9 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Modal de confirmación */}
       {projectToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden transform transition-all scale-100">
+          <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden">
             <div className="p-6">
               <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4 mx-auto">
                 <span className="text-2xl">⚠️</span>
@@ -581,11 +841,9 @@ export default function Dashboard() {
                 ¿Eliminar Proyecto?
               </h3>
               <p className="text-gray-500 text-center text-sm mb-6">
-                Estás a punto de eliminar{" "}
-                <strong>"{projectToDelete.title}"</strong>. Esta acción no se
-                puede deshacer.
+                Se eliminará <strong>"{projectToDelete.title}"</strong>. Esta
+                acción es irreversible.
               </p>
-
               <div className="flex gap-3">
                 <button
                   onClick={() => setProjectToDelete(null)}
@@ -605,10 +863,9 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Componente de notificación */}
       {notification && (
         <div
-          className={`fixed bottom-5 right-5 px-6 py-3 rounded-lg shadow-lg text-white font-medium transform transition-all duration-300 animate-fade-in flex items-center gap-2 z-50 ${
+          className={`fixed bottom-5 right-5 px-6 py-3 rounded-lg shadow-lg text-white font-medium animate-fade-in z-50 flex items-center gap-2 ${
             notification.type === "error" ? "bg-red-500" : "bg-green-600"
           }`}
         >

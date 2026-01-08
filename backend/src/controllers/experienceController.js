@@ -36,6 +36,31 @@ const createExperience = async (req, res) => {
   }
 };
 
+// Actualizar
+const updateExperience = async (req, res) => {
+  const { id } = req.params;
+  const { position, company, startDate, endDate, description, isVisible } =
+    req.body;
+
+  try {
+    const updatedExperience = await prisma.experience.update({
+      where: { id: parseInt(id) },
+      data: {
+        position,
+        company,
+        startDate: new Date(startDate),
+        endDate: endDate ? new Date(endDate) : null,
+        description,
+        isVisible,
+      },
+    });
+    res.json(updatedExperience);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al actualizar experiencia" });
+  }
+};
+
 // Borrar
 const deleteExperience = async (req, res) => {
   const { id } = req.params;
@@ -50,4 +75,9 @@ const deleteExperience = async (req, res) => {
   }
 };
 
-module.exports = { getExperiences, createExperience, deleteExperience };
+module.exports = {
+  getExperiences,
+  createExperience,
+  updateExperience,
+  deleteExperience,
+};
