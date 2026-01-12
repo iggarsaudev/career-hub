@@ -48,3 +48,16 @@ model Experience {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model Education {
+  id          Int       @id @default(autoincrement())
+  degree      String // Ej: "Grado Superior en DAM"
+  school      String // Ej: "IES Politécnico"
+  startDate   DateTime // Ej: 2020-09-01
+  endDate     DateTime? // Puede ser null si lo estás cursando
+  description String? // Opcional: "Mención honorífica..."
+  isVisible   Boolean   @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

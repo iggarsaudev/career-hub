@@ -3,11 +3,13 @@ import { API_URL } from "../config";
 import Navbar from "../components/Navbar";
 import Timeline from "../components/Timeline";
 import ProjectCard from "../components/ProjectCard";
+import EducationList from "../components/EducationList";
 
 export default function Home() {
   const [profile, setProfile] = useState(null);
   const [projects, setProjects] = useState([]);
   const [experiences, setExperiences] = useState([]);
+  const [educations, setEducations] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,13 +17,19 @@ export default function Home() {
       fetch(`${API_URL}/profile`).then((res) => res.json()),
       fetch(`${API_URL}/projects`).then((res) => res.json()),
       fetch(`${API_URL}/experience`).then((res) => res.json()),
+      fetch(`${API_URL}/education`).then((res) => res.json()),
     ])
-      .then(([profileData, projectsData, experienceData]) => {
+      .then(([profileData, projectsData, experienceData, educationData]) => {
         setProfile(profileData);
         setProjects(projectsData.filter((p) => p.isVisible));
         setExperiences(
           Array.isArray(experienceData)
             ? experienceData.filter((e) => e.isVisible)
+            : []
+        );
+        setEducations(
+          Array.isArray(educationData)
+            ? educationData.filter((e) => e.isVisible)
             : []
         );
         setLoading(false);
@@ -117,10 +125,26 @@ export default function Home() {
         </section>
       )}
 
+      {/* Sección formación */}
+      {educations.length > 0 && (
+        <section
+          id="education"
+          className="bg-white py-20 px-6 border-t border-gray-200"
+        >
+          <div className="max-w-5xl mx-auto">
+            <h3 className="text-sm font-bold text-purple-600 uppercase tracking-wider mb-10 flex items-center gap-2">
+              <span className="w-8 h-0.5 bg-purple-600 inline-block"></span>
+              Formación Académica
+            </h3>
+            <EducationList educations={educations} />
+          </div>
+        </section>
+      )}
+
       {/* Sección proyectos */}
       <section
         id="projects"
-        className="py-20 px-6 bg-white border-t border-gray-200"
+        className="py-20 px-6 bg-gray-50 border-t border-gray-200"
       >
         <div className="max-w-5xl mx-auto">
           <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-wider mb-10 flex items-center gap-2">

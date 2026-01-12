@@ -49,6 +49,7 @@ export default function Navbar({ profile }) {
           {[
             { id: "about", label: "Sobre mí" },
             { id: "experience", label: "Experiencia" },
+            { id: "education", label: "Formación" },
             { id: "projects", label: "Proyectos" },
           ].map((item) => (
             <li key={item.id}>

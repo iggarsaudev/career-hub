@@ -8,6 +8,7 @@ const profileRoutes = require("./routes/profileRoutes");
 const projectRoutes = require("./routes/projectRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
 const experienceRoutes = require("./routes/experienceRoutes");
+const educationRoutes = require("./routes/educationRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -22,6 +23,7 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/experience", experienceRoutes);
+app.use("/api/education", educationRoutes);
 
 // Ruta Health Check
 app.get("/", (req, res) => {

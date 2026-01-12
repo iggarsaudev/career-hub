@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
 
+// Componentes modulares
 import ProfileSection from "../components/admin/ProfileSection";
 import ProjectsSection from "../components/admin/ProjectsSection";
 import ExperienceSection from "../components/admin/ExperienceSection";
+import EducationSection from "../components/admin/EducationSection";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -13,6 +15,7 @@ export default function Dashboard() {
   const [profile, setProfile] = useState(null);
   const [projects, setProjects] = useState([]);
   const [experiences, setExperiences] = useState([]);
+  const [educations, setEducations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState(null);
 
@@ -29,19 +32,23 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [profileRes, projectsRes, experienceRes] = await Promise.all([
-          fetch(`${API_URL}/profile`),
-          fetch(`${API_URL}/projects`),
-          fetch(`${API_URL}/experience`),
-        ]);
+        const [profileRes, projectsRes, experienceRes, educationRes] =
+          await Promise.all([
+            fetch(`${API_URL}/profile`),
+            fetch(`${API_URL}/projects`),
+            fetch(`${API_URL}/experience`),
+            fetch(`${API_URL}/education`),
+          ]);
 
         const profileData = await profileRes.json();
         const projectsData = await projectsRes.json();
         const experienceData = await experienceRes.json();
+        const educationData = await educationRes.json();
 
         setProfile(profileData);
         setProjects(projectsData);
         setExperiences(experienceData);
+        setEducations(educationData);
         setLoading(false);
       } catch (err) {
         console.error(err);
@@ -77,7 +84,6 @@ export default function Dashboard() {
         </div>
       </nav>
 
-      {/* Contenido */}
       <div className="max-w-4xl mx-auto px-6 space-y-12">
         <ProfileSection
           profile={profile}
@@ -85,9 +91,9 @@ export default function Dashboard() {
           showNotification={showNotification}
         />
 
-        <ProjectsSection
-          projects={projects}
-          setProjects={setProjects}
+        <EducationSection
+          educations={educations}
+          setEducations={setEducations}
           showNotification={showNotification}
         />
 
@@ -96,9 +102,14 @@ export default function Dashboard() {
           setExperiences={setExperiences}
           showNotification={showNotification}
         />
+
+        <ProjectsSection
+          projects={projects}
+          setProjects={setProjects}
+          showNotification={showNotification}
+        />
       </div>
 
-      {/* Notificación Global */}
       {notification && (
         <div
           className={`fixed bottom-5 right-5 px-6 py-3 rounded-lg shadow-lg text-white font-medium animate-fade-in z-50 flex items-center gap-2 ${
