@@ -1,0 +1,323 @@
+import { useState } from "react";
+import { API_URL } from "../../config";
+
+export default function ExperienceSection({
+  experiences,
+  setExperiences,
+  showNotification,
+}) {
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [form, setForm] = useState({
+    position: "",
+    company: "",
+    startDate: "",
+    endDate: "",
+    description: "",
+    isVisible: true,
+  });
+
+  // Estado para el Modal de Borrado
+  const [itemToDelete, setItemToDelete] = useState(null);
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "Actualidad";
+    return new Date(dateString).toLocaleDateString("es-ES", {
+      year: "numeric",
+      month: "short",
+    });
+  };
+
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return "";
+    return new Date(dateString).toISOString().split("T")[0];
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const startEditing = (exp) => {
+    setEditingId(exp.id);
+    setForm({
+      position: exp.position,
+      company: exp.company,
+      startDate: formatDateForInput(exp.startDate),
+      endDate: formatDateForInput(exp.endDate),
+      description: exp.description,
+      isVisible: exp.isVisible,
+    });
+    setIsFormOpen(true);
+  };
+
+  const resetForm = () => {
+    setIsFormOpen(false);
+    setEditingId(null);
+    setForm({
+      position: "",
+      company: "",
+      startDate: "",
+      endDate: "",
+      description: "",
+      isVisible: true,
+    });
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = { ...form, endDate: form.endDate || null };
+      const method = editingId ? "PUT" : "POST";
+      const url = editingId
+        ? `${API_URL}/experience/${editingId}`
+        : `${API_URL}/experience`;
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        const savedExp = await res.json();
+        setExperiences((prev) => {
+          const updatedList = editingId
+            ? prev.map((e) => (e.id === editingId ? savedExp : e))
+            : [...prev, savedExp];
+          return updatedList.sort(
+            (a, b) => new Date(b.startDate) - new Date(a.startDate)
+          );
+        });
+        resetForm();
+        showNotification(
+          editingId ? "Experiencia actualizada" : "Experiencia añadida",
+          "success"
+        );
+      } else {
+        showNotification("Error al guardar", "error");
+      }
+    } catch (error) {
+      showNotification("Error de conexión", "error");
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+    try {
+      const res = await fetch(`${API_URL}/experience/${itemToDelete.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setExperiences((prev) => prev.filter((e) => e.id !== itemToDelete.id));
+        showNotification("Experiencia eliminada", "success");
+      } else {
+        showNotification("Error al eliminar", "error");
+      }
+    } catch (error) {
+      showNotification("Error de conexión", "error");
+    } finally {
+      setItemToDelete(null);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-bold text-gray-800">Experiencia Laboral</h2>
+        {!isFormOpen && (
+          <button
+            onClick={() => {
+              resetForm();
+              setIsFormOpen(true);
+            }}
+            className="px-4 py-2 bg-green-600 text-white text-sm font-bold rounded-lg hover:bg-green-700 transition shadow-sm"
+          >
+            + Añadir Experiencia
+          </button>
+        )}
+      </div>
+
+      {isFormOpen && (
+        <div
+          className={`mb-8 p-6 rounded-xl border animate-fade-in ${
+            editingId
+              ? "bg-emerald-50 border-emerald-100"
+              : "bg-green-50 border-green-100"
+          }`}
+        >
+          <h3
+            className={`font-bold mb-4 ${
+              editingId ? "text-emerald-900" : "text-green-900"
+            }`}
+          >
+            {editingId ? "💼 Editar Experiencia" : "💼 Nueva Experiencia"}
+          </h3>
+          <form onSubmit={handleSave} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Cargo / Puesto
+                </label>
+                <input
+                  name="position"
+                  value={form.position}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 outline-none"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Empresa
+                </label>
+                <input
+                  name="company"
+                  value={form.company}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 outline-none"
+                  required
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Fecha Inicio
+                </label>
+                <input
+                  type="date"
+                  name="startDate"
+                  value={form.startDate}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 outline-none"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Fecha Fin (Dejar vacío si es actual)
+                </label>
+                <input
+                  type="date"
+                  name="endDate"
+                  value={form.endDate}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 outline-none"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                Descripción
+              </label>
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 outline-none"
+                rows="3"
+                required
+              />
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button
+                type="submit"
+                className={`px-4 py-2 text-white rounded shadow-sm font-medium transition ${
+                  editingId
+                    ? "bg-emerald-600 hover:bg-emerald-700"
+                    : "bg-green-600 hover:bg-green-700"
+                }`}
+              >
+                {editingId ? "Actualizar" : "Guardar"}
+              </button>
+              <button
+                type="button"
+                onClick={resetForm}
+                className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-50 transition font-medium"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {experiences.length === 0 && !isFormOpen ? (
+        <p className="text-gray-400 text-center py-10 italic">
+          Aún no has añadido experiencia laboral.
+        </p>
+      ) : (
+        <div className="space-y-4">
+          {experiences.map((exp) => (
+            <div
+              key={exp.id}
+              className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition flex flex-col md:flex-row justify-between items-start gap-4"
+            >
+              <div>
+                <h4 className="font-bold text-gray-800 text-lg">
+                  {exp.position}
+                </h4>
+                <p className="text-green-700 font-medium mb-1">{exp.company}</p>
+                <p className="text-xs text-gray-500 mb-3">
+                  {formatDate(exp.startDate)} - {formatDate(exp.endDate)}
+                </p>
+                <p className="text-gray-600 text-sm">{exp.description}</p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => startEditing(exp)}
+                  className="text-gray-400 hover:text-emerald-600 transition p-2 hover:bg-emerald-50 rounded"
+                  title="Editar"
+                >
+                  ✏️
+                </button>
+                <button
+                  onClick={() => setItemToDelete(exp)}
+                  className="text-gray-400 hover:text-red-600 transition p-2 hover:bg-red-50 rounded"
+                  title="Eliminar"
+                >
+                  🗑️
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Modal de confirmación */}
+      {itemToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden">
+            <div className="p-6">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4 mx-auto">
+                <span className="text-2xl">⚠️</span>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 text-center mb-2">
+                ¿Eliminar Experiencia?
+              </h3>
+              <p className="text-gray-500 text-center text-sm mb-6">
+                Se eliminará <strong>"{itemToDelete.position}"</strong> en{" "}
+                {itemToDelete.company}.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setItemToDelete(null)}
+                  className="flex-1 px-4 py-2 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition shadow-md"
+                >
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
