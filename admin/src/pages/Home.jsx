@@ -52,6 +52,7 @@ export default function Home() {
       <Navbar profile={profile} />
 
       {/* Hero Section */}
+      {/* Hero Section */}
       <header
         id="home"
         className="bg-white pb-12 pt-28 px-6 border-b border-gray-100"
@@ -74,22 +75,17 @@ export default function Home() {
             <h2 className="text-xl md:text-2xl text-blue-600 font-medium mb-4">
               {profile?.title || "Desarrollador"}
             </h2>
-            <p className="text-gray-600 max-w-2xl text-lg leading-relaxed">
+            <p className="text-gray-600 max-w-2xl text-lg leading-relaxed mb-6">
               {profile?.summary}
             </p>
 
-            <div className="mt-6 flex gap-4 justify-center md:justify-start">
-              <a
-                href="#projects"
-                className="px-6 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-              >
-                Ver Proyectos
-              </a>
+            {/* SOLO BOTÓN CONTACTAR (PROYECTOS ELIMINADO) */}
+            <div className="flex gap-4 justify-center md:justify-start">
               <a
                 href={`mailto:${profile?.email}`}
-                className="px-6 py-3 bg-white text-gray-700 font-bold rounded-lg border border-gray-300 hover:bg-gray-50 transition shadow-sm"
+                className="px-8 py-3 bg-gray-900 text-white font-bold rounded-lg hover:bg-blue-600 transition shadow-lg hover:shadow-xl transform hover:-translate-y-1"
               >
-                Contactar
+                📬 Envíame un correo
               </a>
             </div>
           </div>
