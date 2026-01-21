@@ -16,16 +16,26 @@ const getExperiences = async (req, res) => {
 // Crear nueva
 const createExperience = async (req, res) => {
   try {
-    const { position, company, startDate, endDate, description, isVisible } =
-      req.body;
+    const {
+      position,
+      position_en,
+      company,
+      startDate,
+      endDate,
+      description,
+      description_en,
+      isVisible,
+    } = req.body;
 
     const newExperience = await prisma.experience.create({
       data: {
         position,
+        position_en,
         company,
         startDate: new Date(startDate), // Convertimos string a Date
         endDate: endDate ? new Date(endDate) : null,
         description,
+        description_en,
         isVisible: isVisible !== undefined ? isVisible : true,
       },
     });
@@ -39,18 +49,28 @@ const createExperience = async (req, res) => {
 // Actualizar
 const updateExperience = async (req, res) => {
   const { id } = req.params;
-  const { position, company, startDate, endDate, description, isVisible } =
-    req.body;
+  const {
+    position,
+    position_en,
+    company,
+    startDate,
+    endDate,
+    description,
+    description_en,
+    isVisible,
+  } = req.body;
 
   try {
     const updatedExperience = await prisma.experience.update({
       where: { id: parseInt(id) },
       data: {
         position,
+        position_en,
         company,
         startDate: new Date(startDate),
         endDate: endDate ? new Date(endDate) : null,
         description,
+        description_en,
         isVisible,
       },
     });

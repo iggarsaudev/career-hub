@@ -16,15 +16,25 @@ const getEducation = async (req, res) => {
 // Crear
 const createEducation = async (req, res) => {
   try {
-    const { degree, school, startDate, endDate, description, isVisible } =
-      req.body;
+    const {
+      degree,
+      degree_en,
+      school,
+      startDate,
+      endDate,
+      description,
+      description_en,
+      isVisible,
+    } = req.body;
     const newEdu = await prisma.education.create({
       data: {
         degree,
+        degree_en,
         school,
         startDate: new Date(startDate),
         endDate: endDate ? new Date(endDate) : null,
         description: description || "",
+        description_en: description_en || "",
         isVisible: isVisible !== undefined ? isVisible : true,
       },
     });
@@ -38,17 +48,27 @@ const createEducation = async (req, res) => {
 // Actualizar
 const updateEducation = async (req, res) => {
   const { id } = req.params;
-  const { degree, school, startDate, endDate, description, isVisible } =
-    req.body;
+  const {
+    degree,
+    degree_en,
+    school,
+    startDate,
+    endDate,
+    description,
+    description_en,
+    isVisible,
+  } = req.body;
   try {
     const updatedEdu = await prisma.education.update({
       where: { id: parseInt(id) },
       data: {
         degree,
+        degree_en,
         school,
         startDate: new Date(startDate),
         endDate: endDate ? new Date(endDate) : null,
         description,
+        description_en,
         isVisible,
       },
     });

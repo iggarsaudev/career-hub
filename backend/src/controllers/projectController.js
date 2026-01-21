@@ -16,7 +16,15 @@ const getProjects = async (req, res) => {
 // Crear
 const createProject = async (req, res) => {
   try {
-    const { title, description, image, link, technologies } = req.body;
+    const {
+      title,
+      title_en,
+      description,
+      description_en,
+      image,
+      link,
+      technologies,
+    } = req.body;
 
     // Generación de Slug
     const slug =
@@ -30,7 +38,9 @@ const createProject = async (req, res) => {
     const newProject = await prisma.project.create({
       data: {
         title,
+        title_en,
         description,
+        description_en,
         image,
         slug,
         repoUrl: link, // Mapeo importante: frontend 'link' -> backend 'repoUrl'
@@ -49,14 +59,25 @@ const createProject = async (req, res) => {
 // Actualizar
 const updateProject = async (req, res) => {
   const { id } = req.params;
-  const { title, description, image, link, technologies, isVisible } = req.body;
+  const {
+    title,
+    title_en,
+    description,
+    description_en,
+    image,
+    link,
+    technologies,
+    isVisible,
+  } = req.body;
 
   try {
     const updatedProject = await prisma.project.update({
       where: { id: parseInt(id) }, // Importante: convertir ID a entero
       data: {
         title,
+        title_en,
         description,
+        description_en,
         image,
         repoUrl: link, // Mapeamos link (frontend) a repoUrl (db)
         techStack: technologies, // Prisma actualizará el array completo

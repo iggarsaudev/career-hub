@@ -13,51 +13,74 @@ datasource db {
 model Profile {
   id        Int      @id @default(autoincrement())
   name      String
-  title     String
-  summary   String?
-  bio       String?
   email     String   @unique
   avatar    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Español
+  title   String
+  summary String?
+  bio     String?
+
+  // Inglés
+  title_en   String
+  summary_en String?
+  bio_en     String?
 }
 
 model Project {
-  id          Int      @id @default(autoincrement())
-  title       String
-  slug        String   @unique
-  description String
-  techStack   String[]
-  repoUrl     String?
-  demoUrl     String?
-  image       String?
-  isVisible   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  slug      String   @unique
+  techStack String[]
+  repoUrl   String?
+  demoUrl   String?
+  image     String?
+  isVisible Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Español
+  title       String?
+  description String?
+
+  // Inglés
+  title_en       String?
+  description_en String?
 }
 
 model Experience {
-  id          Int       @id @default(autoincrement())
-  position    String // Ej: "Senior Frontend Developer"
-  company     String // Ej: "Google"
-  startDate   DateTime // Ej: 2022-01-01
-  endDate     DateTime? // Puede ser null si trabajas ahí actualmente
-  description String // Responsabilidades
-  isVisible   Boolean   @default(true)
+  id        Int       @id @default(autoincrement())
+  company   String // Ej: "Google"
+  startDate DateTime // Ej: 2022-01-01
+  endDate   DateTime? // Puede ser null si trabajas ahí actualmente  
+  isVisible Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  // Español
+  position    String?
+  description String?
+
+  // Inglés
+  position_en    String?
+  description_en String?
 }
 
 model Education {
-  id          Int       @id @default(autoincrement())
-  degree      String // Ej: "Grado Superior en DAM"
-  school      String // Ej: "IES Politécnico"
-  startDate   DateTime // Ej: 2020-09-01
-  endDate     DateTime? // Puede ser null si lo estás cursando
-  description String? // Opcional: "Mención honorífica..."
-  isVisible   Boolean   @default(true)
+  id        Int       @id @default(autoincrement())
+  school    String // Ej: "IES Politécnico"
+  startDate DateTime // Ej: 2020-09-01
+  endDate   DateTime? // Puede ser null si lo estás cursando
+  isVisible Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  // Español
+  description String?
+  degree      String?
+
+  // Inglés
+  description_en String?
+  degree_en      String?
 }
