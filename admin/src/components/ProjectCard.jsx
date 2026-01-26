@@ -1,6 +1,17 @@
 import { getTechColor } from "../utils/colors";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function ProjectCard({ project }) {
+  const { language } = useLanguage(); // Obtener idioma
+
+  // Lógica de selección de texto
+  const title =
+    language === "en" && project.title_en ? project.title_en : project.title;
+  const description =
+    language === "en" && project.description_en
+      ? project.description_en
+      : project.description;
+
   return (
     <article className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition duration-300 border border-gray-200 flex flex-col h-full group">
       {/* Imagen */}
@@ -8,7 +19,7 @@ export default function ProjectCard({ project }) {
         {project.image ? (
           <img
             src={project.image}
-            alt={project.title}
+            alt={title}
             className="w-full h-full object-cover transition duration-500 group-hover:scale-105"
           />
         ) : (
@@ -21,7 +32,7 @@ export default function ProjectCard({ project }) {
       {/* Contenido */}
       <div className="p-6 flex flex-col flex-grow">
         <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">
-          {project.title}
+          {title}
         </h3>
 
         {/* Tech Stack */}
@@ -30,7 +41,7 @@ export default function ProjectCard({ project }) {
             <span
               key={i}
               className={`text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide border ${getTechColor(
-                tech
+                tech,
               )}`}
             >
               {tech}
@@ -39,7 +50,7 @@ export default function ProjectCard({ project }) {
         </div>
 
         <p className="text-gray-600 mb-6 flex-grow line-clamp-3 leading-relaxed text-sm">
-          {project.description}
+          {description}
         </p>
 
         <a
@@ -68,7 +79,13 @@ export default function ProjectCard({ project }) {
                   d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
                 />
               </svg>
-              Ver Código
+              {language === "en"
+                ? project.repoUrl
+                  ? "View Code"
+                  : "Coming Soon"
+                : project.repoUrl
+                  ? "Ver Código"
+                  : "Próximamente"}
             </>
           ) : (
             "Próximamente"

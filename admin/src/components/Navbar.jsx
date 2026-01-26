@@ -1,14 +1,20 @@
 import { useState, useEffect } from "react";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function Navbar({ profile }) {
   const [activeSection, setActiveSection] = useState("home");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const { language, toggleLanguage, t } = useLanguage();
+
   const navLinks = [
-    { id: "about", label: "Sobre mí" },
-    { id: "experience", label: "Experiencia" },
-    { id: "education", label: "Formación" },
-    { id: "projects", label: "Proyectos" },
+    { id: "about", label: t("nav.about") || "Sobre mí" },
+    {
+      id: "experience",
+      label: language === "en" ? "Experience" : "Experiencia",
+    },
+    { id: "education", label: language === "en" ? "Education" : "Formación" },
+    { id: "projects", label: t("nav.projects") || "Proyectos" },
   ];
 
   useEffect(() => {
@@ -78,6 +84,21 @@ export default function Navbar({ profile }) {
           </ul>
 
           <div className="flex items-center gap-3 pl-6 border-l border-gray-200">
+            {/* Botón Bandera Desktop */}
+            <button
+              onClick={toggleLanguage}
+              className="p-2 rounded-full hover:bg-gray-100 transition flex items-center justify-center"
+              title={
+                language === "es" ? "Cambiar a Inglés" : "Switch to Spanish"
+              }
+            >
+              <img
+                src={language === "es" ? "/es.png" : "/en.png"}
+                alt="Idioma"
+                className="w-6 h-6 object-contain"
+              />
+            </button>
+
             {/* Botón Admin */}
             <a
               href="/login"
@@ -104,7 +125,7 @@ export default function Navbar({ profile }) {
               href={`mailto:${profile?.email}`}
               className="text-xs px-5 py-2.5 bg-gray-900 text-white rounded-full hover:bg-blue-600 transition font-bold shadow-md transform hover:-translate-y-0.5"
             >
-              Contactar
+              {language === "en" ? "Contact" : "Contactar"}
             </a>
           </div>
         </div>
@@ -148,7 +169,7 @@ export default function Navbar({ profile }) {
         {/* Menú móvil */}
         <div
           className={`absolute top-full left-0 right-0 bg-white border-b border-gray-100 shadow-lg md:hidden transition-all duration-300 ease-in-out overflow-hidden ${
-            isMobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+            isMobileMenuOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
           }`}
         >
           <ul className="flex flex-col p-6 gap-4 text-center">
@@ -166,12 +187,36 @@ export default function Navbar({ profile }) {
                 </button>
               </li>
             ))}
-            <li className="pt-4 border-t border-gray-100 mt-2 flex flex-col gap-3">
+
+            {/* OPCIÓN IDIOMA MÓVIL */}
+            <li className="py-2 border-t border-gray-100 mt-2">
+              <button
+                onClick={() => {
+                  toggleLanguage();
+                  setIsMobileMenuOpen(false); // Cerramos menú al cambiar
+                }}
+                className="flex items-center justify-center gap-2 w-full text-gray-700 font-medium hover:text-blue-600"
+              >
+                {language === "es" ? (
+                  <>
+                    <span>Switch to English</span>{" "}
+                    <span className="text-2xl">🇺🇸</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Cambiar a Español</span>{" "}
+                    <span className="text-2xl">🇪🇸</span>
+                  </>
+                )}
+              </button>
+            </li>
+
+            <li className="flex flex-col gap-3">
               <a
                 href={`mailto:${profile?.email}`}
                 className="inline-block text-sm px-6 py-3 bg-blue-600 text-white rounded-xl font-bold w-full"
               >
-                Contactar Ahora
+                {language === "en" ? "Contact Now" : "Contactar Ahora"}
               </a>
               <a href="/login" className="text-sm text-gray-400">
                 Admin Login
