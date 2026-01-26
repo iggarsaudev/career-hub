@@ -8,12 +8,16 @@ export default function ExperienceSection({
 }) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [activeTab, setActiveTab] = useState("es"); // Control de Pestañas
+
   const [form, setForm] = useState({
     position: "",
+    position_en: "",
     company: "",
     startDate: "",
     endDate: "",
     description: "",
+    description_en: "",
     isVisible: true,
   });
 
@@ -41,14 +45,17 @@ export default function ExperienceSection({
   const startEditing = (exp) => {
     setEditingId(exp.id);
     setForm({
-      position: exp.position,
-      company: exp.company,
+      position: exp.position || "",
+      position_en: exp.position_en || "", // Cargar inglés
+      company: exp.company || "",
       startDate: formatDateForInput(exp.startDate),
       endDate: formatDateForInput(exp.endDate),
-      description: exp.description,
+      description: exp.description || "",
+      description_en: exp.description_en || "", // Cargar inglés
       isVisible: exp.isVisible,
     });
     setIsFormOpen(true);
+    setActiveTab("es");
   };
 
   const resetForm = () => {
@@ -56,12 +63,15 @@ export default function ExperienceSection({
     setEditingId(null);
     setForm({
       position: "",
+      position_en: "",
       company: "",
       startDate: "",
       endDate: "",
       description: "",
+      description_en: "",
       isVisible: true,
     });
+    setActiveTab("es");
   };
 
   const handleSave = async (e) => {
@@ -86,13 +96,13 @@ export default function ExperienceSection({
             ? prev.map((e) => (e.id === editingId ? savedExp : e))
             : [...prev, savedExp];
           return updatedList.sort(
-            (a, b) => new Date(b.startDate) - new Date(a.startDate)
+            (a, b) => new Date(b.startDate) - new Date(a.startDate),
           );
         });
         resetForm();
         showNotification(
           editingId ? "Experiencia actualizada" : "Experiencia añadida",
-          "success"
+          "success",
         );
       } else {
         showNotification("Error al guardar", "error");
@@ -122,7 +132,7 @@ export default function ExperienceSection({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 mb-8">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold text-gray-800">Experiencia Laboral</h2>
         {!isFormOpen && (
@@ -143,43 +153,124 @@ export default function ExperienceSection({
           className={`mb-8 p-6 rounded-xl border animate-fade-in ${
             editingId
               ? "bg-emerald-50 border-emerald-100"
-              : "bg-green-50 border-green-100"
+              : "bg-green-50 border-green-200"
           }`}
         >
-          <h3
-            className={`font-bold mb-4 ${
-              editingId ? "text-emerald-900" : "text-green-900"
-            }`}
-          >
-            {editingId ? "💼 Editar Experiencia" : "💼 Nueva Experiencia"}
-          </h3>
+          <div className="flex justify-between items-start mb-6">
+            <h3
+              className={`font-bold ${
+                editingId ? "text-emerald-900" : "text-green-900"
+              }`}
+            >
+              {editingId ? "💼 Editar Experiencia" : "💼 Nueva Experiencia"}
+            </h3>
+
+            {/* Tabs de idiomas */}
+            <div className="flex bg-white/50 rounded-lg p-1 text-sm font-medium border border-green-200">
+              <button
+                type="button"
+                onClick={() => setActiveTab("es")}
+                className={`px-3 py-1 rounded-md transition-all ${activeTab === "es" ? "bg-white text-green-700 shadow-sm font-bold" : "text-gray-500 hover:text-gray-700"}`}
+              >
+                Español
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("en")}
+                className={`px-3 py-1 rounded-md transition-all ${activeTab === "en" ? "bg-white text-green-700 shadow-sm font-bold" : "text-gray-500 hover:text-gray-700"}`}
+              >
+                Inglés
+              </button>
+            </div>
+          </div>
+
           <form onSubmit={handleSave} className="space-y-4">
+            {activeTab === "es" ? (
+              // Español
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Cargo / Puesto (ES)
+                    </label>
+                    <input
+                      name="position"
+                      value={form.position}
+                      onChange={handleChange}
+                      className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 outline-none"
+                      placeholder="Ej: Senior Frontend Dev"
+                    />
+                  </div>
+                  <div className="hidden md:block"></div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                    Descripción (ES)
+                  </label>
+                  <textarea
+                    name="description"
+                    value={form.description}
+                    onChange={handleChange}
+                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 outline-none"
+                    rows="3"
+                    placeholder="Responsabilidades y logros..."
+                  />
+                </div>
+              </>
+            ) : (
+              // Inglés
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Job Title (EN)
+                    </label>
+                    <input
+                      name="position_en"
+                      value={form.position_en}
+                      onChange={handleChange}
+                      className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 outline-none"
+                      placeholder="e.g. Senior Frontend Dev"
+                    />
+                  </div>
+                  <div className="hidden md:block"></div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                    Description (EN)
+                  </label>
+                  <textarea
+                    name="description_en"
+                    value={form.description_en}
+                    onChange={handleChange}
+                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 outline-none"
+                    rows="3"
+                    placeholder="Key responsibilities and achievements..."
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Separados */}
+            <hr className="border-green-200/50 my-4" />
+
+            {/* Campos comunes */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">
-                  Cargo / Puesto
-                </label>
-                <input
-                  name="position"
-                  value={form.position}
-                  onChange={handleChange}
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 outline-none"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">
-                  Empresa
+                  Empresa (Común)
                 </label>
                 <input
                   name="company"
                   value={form.company}
                   onChange={handleChange}
                   className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 outline-none"
+                  placeholder="Nombre de la empresa"
                   required
                 />
               </div>
             </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">
@@ -207,19 +298,7 @@ export default function ExperienceSection({
                 />
               </div>
             </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">
-                Descripción
-              </label>
-              <textarea
-                name="description"
-                value={form.description}
-                onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 outline-none"
-                rows="3"
-                required
-              />
-            </div>
+
             <div className="flex gap-3 pt-2">
               <button
                 type="submit"
@@ -243,6 +322,7 @@ export default function ExperienceSection({
         </div>
       )}
 
+      {/* Listado de experiencias laborales */}
       {experiences.length === 0 && !isFormOpen ? (
         <p className="text-gray-400 text-center py-10 italic">
           Aún no has añadido experiencia laboral.
@@ -252,18 +332,37 @@ export default function ExperienceSection({
           {experiences.map((exp) => (
             <div
               key={exp.id}
-              className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition flex flex-col md:flex-row justify-between items-start gap-4"
+              className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition flex flex-col md:flex-row justify-between items-start gap-4 relative"
             >
-              <div>
-                <h4 className="font-bold text-gray-800 text-lg">
-                  {exp.position}
-                </h4>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h4 className="font-bold text-gray-800 text-lg">
+                    {exp.position}
+                  </h4>
+                  {/* Badge EN */}
+                  {exp.position_en && (
+                    <span className="text-[10px] font-bold bg-green-100 text-green-700 px-1.5 py-0.5 rounded border border-green-200">
+                      EN
+                    </span>
+                  )}
+                </div>
+
+                {/* Subtítulo inglés */}
+                {exp.position_en && (
+                  <p className="text-xs text-gray-400 mb-1">
+                    🇺🇸 {exp.position_en}
+                  </p>
+                )}
+
                 <p className="text-green-700 font-medium mb-1">{exp.company}</p>
                 <p className="text-xs text-gray-500 mb-3">
                   {formatDate(exp.startDate)} - {formatDate(exp.endDate)}
                 </p>
-                <p className="text-gray-600 text-sm">{exp.description}</p>
+                <p className="text-gray-600 text-sm line-clamp-2">
+                  {exp.description}
+                </p>
               </div>
+
               <div className="flex gap-2">
                 <button
                   onClick={() => startEditing(exp)}

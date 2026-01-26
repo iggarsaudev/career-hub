@@ -8,14 +8,17 @@ export default function EducationSection({
 }) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [activeTab, setActiveTab] = useState("es"); // Control de Pestañas
 
   // Estado para el formulario
   const [form, setForm] = useState({
     degree: "",
+    degree_en: "",
     school: "",
     startDate: "",
     endDate: "",
     description: "",
+    description_en: "",
     isVisible: true,
   });
 
@@ -45,14 +48,17 @@ export default function EducationSection({
   const startEditing = (item) => {
     setEditingId(item.id);
     setForm({
-      degree: item.degree,
-      school: item.school,
+      degree: item.degree || "",
+      degree_en: item.degree_en || "", // Cargar inglés
+      school: item.school || "",
       startDate: formatDateForInput(item.startDate),
       endDate: formatDateForInput(item.endDate),
       description: item.description || "",
+      description_en: item.description_en || "", // Cargar inglés
       isVisible: item.isVisible,
     });
     setIsFormOpen(true);
+    setActiveTab("es");
   };
 
   const resetForm = () => {
@@ -60,12 +66,15 @@ export default function EducationSection({
     setEditingId(null);
     setForm({
       degree: "",
+      degree_en: "",
       school: "",
       startDate: "",
       endDate: "",
       description: "",
+      description_en: "",
       isVisible: true,
     });
+    setActiveTab("es");
   };
 
   const handleSave = async (e) => {
@@ -91,13 +100,13 @@ export default function EducationSection({
             : [...prev, savedItem];
           // Reordenar por fecha (más reciente primero)
           return updatedList.sort(
-            (a, b) => new Date(b.startDate) - new Date(a.startDate)
+            (a, b) => new Date(b.startDate) - new Date(a.startDate),
           );
         });
         resetForm();
         showNotification(
           editingId ? "Formación actualizada" : "Formación añadida",
-          "success"
+          "success",
         );
       } else {
         showNotification("Error al guardar", "error");
@@ -127,7 +136,7 @@ export default function EducationSection({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 mb-8">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold text-gray-800">Formación Académica</h2>
         {!isFormOpen && (
@@ -151,31 +160,109 @@ export default function EducationSection({
               : "bg-gray-50 border-gray-200"
           }`}
         >
-          <h3
-            className={`font-bold mb-4 ${
-              editingId ? "text-purple-900" : "text-gray-800"
-            }`}
-          >
-            {editingId ? "🎓 Editar Título" : "🎓 Nuevo Título"}
-          </h3>
+          <div className="flex justify-between items-start mb-6">
+            <h3
+              className={`font-bold ${
+                editingId ? "text-purple-900" : "text-gray-800"
+              }`}
+            >
+              {editingId ? "🎓 Editar Título" : "🎓 Nuevo Título"}
+            </h3>
+
+            {/* Tabs de idioma */}
+            <div className="flex bg-white/50 rounded-lg p-1 text-sm font-medium border border-purple-200">
+              <button
+                type="button"
+                onClick={() => setActiveTab("es")}
+                className={`px-3 py-1 rounded-md transition-all ${activeTab === "es" ? "bg-white text-purple-700 shadow-sm font-bold" : "text-gray-500 hover:text-gray-700"}`}
+              >
+                Español
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("en")}
+                className={`px-3 py-1 rounded-md transition-all ${activeTab === "en" ? "bg-white text-purple-700 shadow-sm font-bold" : "text-gray-500 hover:text-gray-700"}`}
+              >
+                Inglés
+              </button>
+            </div>
+          </div>
+
           <form onSubmit={handleSave} className="space-y-4">
+            {activeTab === "es" ? (
+              // Español
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Título / Grado (ES)
+                    </label>
+                    <input
+                      name="degree"
+                      value={form.degree}
+                      onChange={handleChange}
+                      className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 outline-none"
+                      placeholder="Ej: Grado Superior DAM"
+                    />
+                  </div>
+                  <div className="hidden md:block"></div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                    Descripción (ES)
+                  </label>
+                  <textarea
+                    name="description"
+                    value={form.description}
+                    onChange={handleChange}
+                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 outline-none"
+                    rows="2"
+                    placeholder="Logros, menciones o detalles..."
+                  />
+                </div>
+              </>
+            ) : (
+              // Inglés
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Degree / Certificate (EN)
+                    </label>
+                    <input
+                      name="degree_en"
+                      value={form.degree_en}
+                      onChange={handleChange}
+                      className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 outline-none"
+                      placeholder="e.g. Bachelor's in CS"
+                    />
+                  </div>
+                  <div className="hidden md:block"></div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                    Description (EN)
+                  </label>
+                  <textarea
+                    name="description_en"
+                    value={form.description_en}
+                    onChange={handleChange}
+                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 outline-none"
+                    rows="2"
+                    placeholder="Honors, achievements..."
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Separador */}
+            <hr className="border-purple-200/50 my-4" />
+
+            {/* Campos comunes */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">
-                  Título / Grado
-                </label>
-                <input
-                  name="degree"
-                  value={form.degree}
-                  onChange={handleChange}
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 outline-none"
-                  placeholder="Ej: Grado Superior DAM"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">
-                  Centro / Escuela
+                  Centro / Escuela (Común)
                 </label>
                 <input
                   name="school"
@@ -187,6 +274,7 @@ export default function EducationSection({
                 />
               </div>
             </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">
@@ -214,19 +302,7 @@ export default function EducationSection({
                 />
               </div>
             </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">
-                Descripción (Opcional)
-              </label>
-              <textarea
-                name="description"
-                value={form.description}
-                onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 outline-none"
-                rows="2"
-                placeholder="Logros, menciones o detalles..."
-              />
-            </div>
+
             <div className="flex gap-3 pt-2">
               <button
                 type="submit"
@@ -250,6 +326,7 @@ export default function EducationSection({
         </div>
       )}
 
+      {/* Listado de educación */}
       {educations.length === 0 && !isFormOpen ? (
         <p className="text-gray-400 text-center py-10 italic">
           No has añadido formación académica.
@@ -259,18 +336,36 @@ export default function EducationSection({
           {educations.map((edu) => (
             <div
               key={edu.id}
-              className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition flex flex-col md:flex-row justify-between items-start gap-4"
+              className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition flex flex-col md:flex-row justify-between items-start gap-4 relative"
             >
-              <div>
-                <h4 className="font-bold text-gray-800 text-lg">
-                  {edu.degree}
-                </h4>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h4 className="font-bold text-gray-800 text-lg">
+                    {edu.degree}
+                  </h4>
+                  {/* Badge EN */}
+                  {edu.degree_en && (
+                    <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded border border-purple-200">
+                      EN
+                    </span>
+                  )}
+                </div>
+
+                {/* Subtítulo inglés */}
+                {edu.degree_en && (
+                  <p className="text-xs text-gray-400 mb-1">
+                    🇺🇸 {edu.degree_en}
+                  </p>
+                )}
+
                 <p className="text-purple-700 font-medium mb-1">{edu.school}</p>
                 <p className="text-xs text-gray-500 mb-2">
                   {formatDate(edu.startDate)} - {formatDate(edu.endDate)}
                 </p>
                 {edu.description && (
-                  <p className="text-gray-600 text-sm">{edu.description}</p>
+                  <p className="text-gray-600 text-sm line-clamp-2">
+                    {edu.description}
+                  </p>
                 )}
               </div>
               <div className="flex gap-2">
