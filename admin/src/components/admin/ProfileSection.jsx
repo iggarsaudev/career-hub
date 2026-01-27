@@ -21,6 +21,11 @@ export default function ProfileSection({
       // Creamos una copia limpia solo con los campos editables
       const payload = {
         name: form.name,
+        phone: form.phone,
+        city: form.city,
+        country: form.country,
+        linkedin: form.linkedin,
+        website: form.website,
         title: form.title,
         title_en: form.title_en,
         summary: form.summary,
@@ -157,6 +162,67 @@ export default function ProfileSection({
                   onChange={handleChange}
                   className="w-full mt-1 p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
+              </div>
+
+              {/* Datos personales */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                    Teléfono
+                  </label>
+                  <input
+                    name="phone"
+                    placeholder="+34 600 000 000"
+                    value={form.phone || ""}
+                    onChange={handleChange}
+                    className="w-full mt-1 p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                    Ciudad / País
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      name="city"
+                      placeholder="Madrid"
+                      value={form.city || ""}
+                      onChange={handleChange}
+                      className="w-1/2 mt-1 p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                      name="country"
+                      placeholder="España"
+                      value={form.country || ""}
+                      onChange={handleChange}
+                      className="w-1/2 mt-1 p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                    LinkedIn (URL)
+                  </label>
+                  <input
+                    name="linkedin"
+                    placeholder="https://linkedin.com/in/..."
+                    value={form.linkedin || ""}
+                    onChange={handleChange}
+                    className="w-full mt-1 p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                    Web Personal / Portfolio (URL)
+                  </label>
+                  <input
+                    name="website"
+                    placeholder="https://miweb.com"
+                    value={form.website || ""}
+                    onChange={handleChange}
+                    className="w-full mt-1 p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
               </div>
 
               {activeTab === "es" ? (

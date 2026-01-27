@@ -19,6 +19,9 @@ export default function ExperienceSection({
     description: "",
     description_en: "",
     isVisible: true,
+    // NUEVOS CAMPOS PDF
+    isVisibleInPdf: true,
+    showDescriptionInPdf: true,
   });
 
   // Estado para el Modal de Borrado
@@ -46,13 +49,16 @@ export default function ExperienceSection({
     setEditingId(exp.id);
     setForm({
       position: exp.position || "",
-      position_en: exp.position_en || "", // Cargar inglés
+      position_en: exp.position_en || "",
       company: exp.company || "",
       startDate: formatDateForInput(exp.startDate),
       endDate: formatDateForInput(exp.endDate),
       description: exp.description || "",
-      description_en: exp.description_en || "", // Cargar inglés
+      description_en: exp.description_en || "",
       isVisible: exp.isVisible,
+      // Cargamos valores PDF (si no existen, default true)
+      isVisibleInPdf: exp.isVisibleInPdf ?? true,
+      showDescriptionInPdf: exp.showDescriptionInPdf ?? true,
     });
     setIsFormOpen(true);
     setActiveTab("es");
@@ -70,6 +76,8 @@ export default function ExperienceSection({
       description: "",
       description_en: "",
       isVisible: true,
+      isVisibleInPdf: true,
+      showDescriptionInPdf: true,
     });
     setActiveTab("es");
   };
@@ -299,6 +307,56 @@ export default function ExperienceSection({
               </div>
             </div>
 
+            {/* --- OPCIONES DE VISIBILIDAD (PDF) --- */}
+            <div className="bg-white/60 p-4 rounded-lg border border-green-200 mt-4 space-y-3">
+              <p className="text-xs font-bold text-green-700 uppercase tracking-wide mb-2 flex items-center gap-2">
+                📄 Configuración de Exportación (PDF)
+              </p>
+
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    name="isVisibleInPdf"
+                    checked={form.isVisibleInPdf ?? true} // Default true
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        isVisibleInPdf: e.target.checked,
+                      }))
+                    }
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-600"></div>
+                </div>
+                <span className="text-sm font-medium text-gray-700 group-hover:text-green-700 transition-colors">
+                  Incluir este puesto en el CV (PDF)
+                </span>
+              </label>
+
+              {/* Solo mostramos la opción de descripción si el puesto es visible en PDF */}
+              {(form.isVisibleInPdf ?? true) && (
+                <label className="flex items-center gap-3 cursor-pointer group animate-fade-in pl-1">
+                  <input
+                    type="checkbox"
+                    name="showDescriptionInPdf"
+                    checked={form.showDescriptionInPdf ?? true}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        showDescriptionInPdf: e.target.checked,
+                      }))
+                    }
+                    className="w-4 h-4 text-green-600 bg-white border-gray-300 rounded focus:ring-green-500"
+                  />
+                  <span className="text-sm text-gray-600 group-hover:text-green-700 transition-colors">
+                    Mostrar descripción detallada en el PDF
+                  </span>
+                </label>
+              )}
+            </div>
+            {/* ------------------------------------- */}
+
             <div className="flex gap-3 pt-2">
               <button
                 type="submit"
@@ -335,7 +393,7 @@ export default function ExperienceSection({
               className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition flex flex-col md:flex-row justify-between items-start gap-4 relative"
             >
               <div className="flex-1">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <h4 className="font-bold text-gray-800 text-lg">
                     {exp.position}
                   </h4>
@@ -345,12 +403,25 @@ export default function ExperienceSection({
                       EN
                     </span>
                   )}
+
+                  {/* --- BADGES NUEVOS --- */}
+                  <span
+                    className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${exp.isVisibleInPdf ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-gray-100 text-gray-400 border-gray-200"}`}
+                  >
+                    PDF:{" "}
+                    {exp.isVisibleInPdf
+                      ? exp.showDescriptionInPdf
+                        ? "COMPLETO"
+                        : "RESUMIDO"
+                      : "OCULTO"}
+                  </span>
+                  {/* --------------------- */}
                 </div>
 
                 {/* Subtítulo inglés */}
                 {exp.position_en && (
                   <p className="text-xs text-gray-400 mb-1">
-                    🇺🇸 {exp.position_en}
+                    {exp.position_en}
                   </p>
                 )}
 
@@ -358,7 +429,7 @@ export default function ExperienceSection({
                 <p className="text-xs text-gray-500 mb-3">
                   {formatDate(exp.startDate)} - {formatDate(exp.endDate)}
                 </p>
-                <p className="text-gray-600 text-sm line-clamp-2">
+                <p className="text-gray-600 text-sm line-clamp-2 whitespace-pre-line">
                   {exp.description}
                 </p>
               </div>
