@@ -18,6 +18,13 @@ model Profile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Contaco (para el CV PDF) ---
+  phone    String? // Ej: "+34 600 000 000"
+  city     String? // Ej: "Madrid"
+  country  String? // Ej: "España"
+  linkedin String? // URL completa
+  website  String? // URL completa
+
   // Español
   title   String
   summary String?
@@ -36,7 +43,13 @@ model Project {
   repoUrl   String?
   demoUrl   String?
   image     String?
-  isVisible Boolean  @default(false)
+
+  // Visibilidad Web
+  isVisible Boolean @default(false)
+
+  // Flag para PDF
+  isVisibleInPdf Boolean @default(true) // ¿Mostrar en el PDF?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -51,12 +64,19 @@ model Project {
 
 model Experience {
   id        Int       @id @default(autoincrement())
-  company   String // Ej: "Google"
-  startDate DateTime // Ej: 2022-01-01
-  endDate   DateTime? // Puede ser null si trabajas ahí actualmente  
-  isVisible Boolean   @default(true)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  company   String
+  startDate DateTime
+  endDate   DateTime?
+
+  // Visibilidad Web
+  isVisible Boolean @default(true)
+
+  // Flags para PDF
+  isVisibleInPdf       Boolean @default(true) // ¿Sale el puesto en el PDF?
+  showDescriptionInPdf Boolean @default(true) // ¿Sale el texto descriptivo en el PDF?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Español
   position    String?
@@ -69,12 +89,19 @@ model Experience {
 
 model Education {
   id        Int       @id @default(autoincrement())
-  school    String // Ej: "IES Politécnico"
-  startDate DateTime // Ej: 2020-09-01
-  endDate   DateTime? // Puede ser null si lo estás cursando
-  isVisible Boolean   @default(true)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  school    String
+  startDate DateTime
+  endDate   DateTime?
+
+  // Visibilidad Web
+  isVisible Boolean @default(true)
+
+  // Flags para PDF
+  isVisibleInPdf       Boolean @default(true) // ¿Sale en el PDF?
+  showDescriptionInPdf Boolean @default(true) // ¿Sale la descripción en el PDF?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Español
   description String?
@@ -83,4 +110,33 @@ model Education {
   // Inglés
   description_en String?
   degree_en      String?
+}
+
+// Skills
+model Skill {
+  id        Int     @id @default(autoincrement())
+  name      String // Ej: "React", "Node.js"
+  category  String? // Ej: "Frontend", "Backend", "Herramientas"
+  isVisible Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Idiomas
+model Language {
+  id Int @id @default(autoincrement())
+
+  // Nombre
+  name    String // Ej: "Español"
+  name_en String? // Ej: "Spanish"
+
+  // Nivel
+  level    String // Ej: "Nativo", "B2"
+  level_en String? // Ej: "Native", "B2"
+
+  isVisible Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

@@ -25,6 +25,8 @@ const createExperience = async (req, res) => {
       description,
       description_en,
       isVisible,
+      isVisibleInPdf,
+      showDescriptionInPdf,
     } = req.body;
 
     const newExperience = await prisma.experience.create({
@@ -37,6 +39,9 @@ const createExperience = async (req, res) => {
         description,
         description_en,
         isVisible: isVisible !== undefined ? isVisible : true,
+        isVisibleInPdf: isVisibleInPdf !== undefined ? isVisibleInPdf : true,
+        showDescriptionInPdf:
+          showDescriptionInPdf !== undefined ? showDescriptionInPdf : true,
       },
     });
     res.json(newExperience);
@@ -58,6 +63,8 @@ const updateExperience = async (req, res) => {
     description,
     description_en,
     isVisible,
+    isVisibleInPdf,
+    showDescriptionInPdf,
   } = req.body;
 
   try {
@@ -72,6 +79,8 @@ const updateExperience = async (req, res) => {
         description,
         description_en,
         isVisible,
+        isVisibleInPdf,
+        showDescriptionInPdf,
       },
     });
     res.json(updatedExperience);

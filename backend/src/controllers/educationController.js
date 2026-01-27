@@ -25,6 +25,8 @@ const createEducation = async (req, res) => {
       description,
       description_en,
       isVisible,
+      isVisibleInPdf,
+      showDescriptionInPdf,
     } = req.body;
     const newEdu = await prisma.education.create({
       data: {
@@ -36,6 +38,9 @@ const createEducation = async (req, res) => {
         description: description || "",
         description_en: description_en || "",
         isVisible: isVisible !== undefined ? isVisible : true,
+        isVisibleInPdf: isVisibleInPdf !== undefined ? isVisibleInPdf : true,
+        showDescriptionInPdf:
+          showDescriptionInPdf !== undefined ? showDescriptionInPdf : true,
       },
     });
     res.json(newEdu);
@@ -57,6 +62,8 @@ const updateEducation = async (req, res) => {
     description,
     description_en,
     isVisible,
+    isVisibleInPdf,
+    showDescriptionInPdf,
   } = req.body;
   try {
     const updatedEdu = await prisma.education.update({
@@ -70,6 +77,8 @@ const updateEducation = async (req, res) => {
         description,
         description_en,
         isVisible,
+        isVisibleInPdf,
+        showDescriptionInPdf,
       },
     });
     res.json(updatedEdu);

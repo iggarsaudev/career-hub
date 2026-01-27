@@ -12,13 +12,42 @@ const getProfile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { name, title, title_en, summary, summary_en, bio, bio_en, avatar } =
-      req.body;
+    const {
+      name,
+      email,
+      avatar,
+      title,
+      title_en,
+      summary,
+      summary_en,
+      bio,
+      bio_en,
+      phone,
+      city,
+      country,
+      linkedin,
+      website,
+    } = req.body;
 
-    // Asumimos que siempre editamos el ID 1 (Single User CMS)
+    // Asumimos que siempre editamos el ID 1
     const updatedProfile = await prisma.profile.update({
       where: { id: 1 },
-      data: { name, title, title_en, summary, summary_en, bio, bio_en, avatar },
+      data: {
+        name,
+        email,
+        avatar,
+        title,
+        title_en,
+        summary,
+        summary_en,
+        bio,
+        bio_en,
+        phone,
+        city,
+        country,
+        linkedin,
+        website,
+      },
     });
 
     res.json(updatedProfile);
