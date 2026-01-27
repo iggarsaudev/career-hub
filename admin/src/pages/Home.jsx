@@ -75,7 +75,7 @@ export default function Home() {
                 <img
                   src={profile.avatar}
                   alt="Avatar"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-top"
                 />
               ) : profile?.name ? (
                 profile.name.charAt(0)
@@ -83,10 +83,6 @@ export default function Home() {
                 "I"
               )}
             </div>
-            <div
-              className="absolute bottom-2 right-2 h-6 w-6 bg-green-500 rounded-full border-4 border-white dark:border-gray-800"
-              title={language === "en" ? "Available" : "Disponible"}
-            ></div>
           </div>
 
           <div className="text-center md:text-left flex-1">

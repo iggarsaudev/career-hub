@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { API_URL } from "../../config";
+import ImageUpload from "../../components/ImageUpload";
 
 export default function ProfileSection({
   profile,
@@ -17,10 +18,24 @@ export default function ProfileSection({
 
   const handleSave = async () => {
     try {
+      // Creamos una copia limpia solo con los campos editables
+      const payload = {
+        name: form.name,
+        title: form.title,
+        title_en: form.title_en,
+        summary: form.summary,
+        summary_en: form.summary_en,
+        bio: form.bio,
+        bio_en: form.bio_en,
+        avatar: form.avatar,
+      };
+
+      console.log("Enviando datos al servidor:", payload); // Para depurar
+
       const res = await fetch(`${API_URL}/profile`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload), // Enviamos la versión limpia
       });
 
       if (res.ok) {
@@ -29,7 +44,9 @@ export default function ProfileSection({
         setIsEditing(false);
         showNotification("Perfil actualizado correctamente", "success");
       } else {
-        showNotification("Error al guardar", "error");
+        const errorData = await res.json();
+        console.error("Error del servidor:", errorData);
+        showNotification("Error al guardar cambios", "error");
       }
     } catch (error) {
       console.error(error);
@@ -51,7 +68,7 @@ export default function ProfileSection({
               <img
                 src={profile.avatar}
                 alt="Avatar"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover object-top"
               />
             ) : (
               profile.name?.charAt(0) || "A"
@@ -70,13 +87,21 @@ export default function ProfileSection({
               <div className="flex bg-gray-200 rounded-lg p-1 text-sm font-medium">
                 <button
                   onClick={() => setActiveTab("es")}
-                  className={`px-4 py-1.5 rounded-md transition-all ${activeTab === "es" ? "bg-white text-gray-800 shadow-sm font-bold" : "text-gray-500 hover:text-gray-700"}`}
+                  className={`px-4 py-1.5 rounded-md transition-all ${
+                    activeTab === "es"
+                      ? "bg-white text-gray-800 shadow-sm font-bold"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
                 >
                   Español
                 </button>
                 <button
                   onClick={() => setActiveTab("en")}
-                  className={`px-4 py-1.5 rounded-md transition-all ${activeTab === "en" ? "bg-white text-gray-800 shadow-sm font-bold" : "text-gray-500 hover:text-gray-700"}`}
+                  className={`px-4 py-1.5 rounded-md transition-all ${
+                    activeTab === "en"
+                      ? "bg-white text-gray-800 shadow-sm font-bold"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
                 >
                   Inglés
                 </button>
@@ -84,7 +109,43 @@ export default function ProfileSection({
             </div>
 
             {/* Formulario */}
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {/* Imagen de perfil */}
+              <div className="bg-white p-4 rounded-lg border border-gray-200">
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">
+                  Foto de Perfil (Avatar)
+                </label>
+                <div className="flex flex-col md:flex-row gap-6 items-center">
+                  {/* Previsualización Circular */}
+                  <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-gray-100 shadow-sm bg-gray-50 shrink-0">
+                    {form.avatar ? (
+                      <img
+                        src={form.avatar}
+                        alt="Avatar Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-2xl text-gray-300">
+                        👤
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Componente de Subida */}
+                  <div className="flex-1 w-full">
+                    <ImageUpload
+                      value={form.avatar}
+                      onChange={(url) =>
+                        setForm((prev) => ({ ...prev, avatar: url }))
+                      }
+                    />
+                    <p className="text-[10px] text-gray-400 mt-2">
+                      Recomendado: Imagen cuadrada (JPG, PNG).
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {/* Nombre */}
               <div>
                 <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">
