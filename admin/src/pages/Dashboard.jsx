@@ -91,6 +91,12 @@ export default function Dashboard() {
           showNotification={showNotification}
         />
 
+        <ProjectsSection
+          projects={projects}
+          setProjects={setProjects}
+          showNotification={showNotification}
+        />
+
         <EducationSection
           educations={educations}
           setEducations={setEducations}
@@ -100,12 +106,6 @@ export default function Dashboard() {
         <ExperienceSection
           experiences={experiences}
           setExperiences={setExperiences}
-          showNotification={showNotification}
-        />
-
-        <ProjectsSection
-          projects={projects}
-          setProjects={setProjects}
           showNotification={showNotification}
         />
       </div>

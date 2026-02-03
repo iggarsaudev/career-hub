@@ -1,7 +1,16 @@
 import { useState } from "react";
 import { API_URL } from "../../config";
 import { getTechColor } from "../../utils/colors";
+
+// Hooks
+import { useForm } from "../../hooks/useForm";
+
+// Componentes UI
+import Modal from "./Modal";
+import AdminItemCard from "./AdminItemCard";
 import ImageUpload from "../../components/ImageUpload";
+import { FormInput, FormTextarea } from "./FormElements";
+import PdfVisibilityToggle from "./PdfToggle";
 
 export default function ProjectsSection({
   projects,
@@ -10,9 +19,11 @@ export default function ProjectsSection({
 }) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [activeTab, setActiveTab] = useState("es"); // Control de pestañas
+  const [activeTab, setActiveTab] = useState("es");
+  const [itemToDelete, setItemToDelete] = useState(null);
 
-  const [form, setForm] = useState({
+  // Estado inicial del formulario
+  const initialFormState = {
     title: "",
     title_en: "",
     description: "",
@@ -20,45 +31,41 @@ export default function ProjectsSection({
     image: "",
     link: "",
     technologies: "",
-  });
-
-  const [itemToDelete, setItemToDelete] = useState(null);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    isVisibleInPdf: true,
   };
 
-  const startEditing = (project) => {
-    setEditingId(project.id);
-    setForm({
-      title: project.title || "",
-      title_en: project.title_en || "",
-      description: project.description || "",
-      description_en: project.description_en || "",
-      image: project.image || "",
-      link: project.repoUrl || "",
-      technologies: project.techStack ? project.techStack.join(", ") : "",
-    });
+  // Usamos el hook personalizado
+  const { form, handleChange, setField, resetForm, setForm } =
+    useForm(initialFormState);
+
+  // Abrir modal para crear o editar
+  const startEditing = (project = null) => {
+    if (project) {
+      setEditingId(project.id);
+      setForm({
+        title: project.title || "",
+        title_en: project.title_en || "",
+        description: project.description || "",
+        description_en: project.description_en || "",
+        image: project.image || "",
+        link: project.repoUrl || "",
+        technologies: project.techStack ? project.techStack.join(", ") : "",
+        isVisibleInPdf: project.isVisibleInPdf ?? true,
+      });
+    } else {
+      setEditingId(null);
+      resetForm(initialFormState);
+    }
     setIsFormOpen(true);
     setActiveTab("es");
   };
 
-  const resetForm = () => {
+  const handleCloseModal = () => {
     setIsFormOpen(false);
     setEditingId(null);
-    setForm({
-      title: "",
-      title_en: "",
-      description: "",
-      description_en: "",
-      image: "",
-      link: "",
-      technologies: "",
-    });
-    setActiveTab("es");
   };
 
+  // Guardar datos
   const handleSave = async (e) => {
     e.preventDefault();
     try {
@@ -67,12 +74,7 @@ export default function ProjectsSection({
         .map((t) => t.trim())
         .filter((t) => t.length > 0);
 
-      const payload = {
-        ...form,
-        technologies: techArray,
-        isVisible: true,
-      };
-
+      const payload = { ...form, technologies: techArray, isVisible: true };
       const method = editingId ? "PUT" : "POST";
       const url = editingId
         ? `${API_URL}/projects/${editingId}`
@@ -91,7 +93,7 @@ export default function ProjectsSection({
             return prev.map((p) => (p.id === editingId ? saved : p));
           return [saved, ...prev];
         });
-        resetForm();
+        handleCloseModal();
         showNotification(
           editingId ? "Proyecto actualizado" : "Proyecto creado",
           "success",
@@ -104,6 +106,7 @@ export default function ProjectsSection({
     }
   };
 
+  // Confirmar borrado
   const confirmDelete = async () => {
     if (!itemToDelete) return;
     try {
@@ -123,296 +126,227 @@ export default function ProjectsSection({
     }
   };
 
+  const themeColor = editingId ? "indigo" : "blue";
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 mb-8">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold text-gray-800">Mis Proyectos</h2>
-        {!isFormOpen && (
-          <button
-            onClick={() => {
-              resetForm();
-              setIsFormOpen(true);
-            }}
-            className="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition shadow-sm"
-          >
-            + Nuevo Proyecto
-          </button>
-        )}
+        <button
+          onClick={() => startEditing()} // Sin argumentos = Crear nuevo
+          className="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition shadow-sm"
+        >
+          + Nuevo Proyecto
+        </button>
       </div>
 
-      {isFormOpen && (
-        <div
-          className={`mb-8 p-6 rounded-xl border animate-fade-in ${
-            editingId
-              ? "bg-indigo-50 border-indigo-100"
-              : "bg-blue-50 border-blue-100"
-          }`}
-        >
-          <div className="flex justify-between items-start mb-6">
-            <h3
-              className={`font-bold ${
-                editingId ? "text-indigo-900" : "text-blue-900"
-              }`}
-            >
-              {editingId ? "✏️ Editar Proyecto" : "✨ Añadir Nuevo Proyecto"}
-            </h3>
-
-            {/* Tabs de idioma */}
-            <div className="flex bg-white/50 rounded-lg p-1 text-sm font-medium border border-blue-200">
-              <button
-                type="button"
-                onClick={() => setActiveTab("es")}
-                className={`px-3 py-1 rounded-md transition-all ${activeTab === "es" ? "bg-white text-blue-700 shadow-sm font-bold" : "text-gray-500 hover:text-gray-700"}`}
-              >
-                Español
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("en")}
-                className={`px-3 py-1 rounded-md transition-all ${activeTab === "en" ? "bg-white text-blue-700 shadow-sm font-bold" : "text-gray-500 hover:text-gray-700"}`}
-              >
-                Inglés
-              </button>
-            </div>
-          </div>
-
-          <form onSubmit={handleSave} className="space-y-4">
-            {activeTab === "es" ? (
-              // Español
-              <>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">
-                    Título (ES)
-                  </label>
-                  <input
-                    name="title"
-                    value={form.title}
-                    onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                    placeholder="Ej: E-commerce Dashboard"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">
-                    Descripción (ES)
-                  </label>
-                  <textarea
-                    name="description"
-                    value={form.description}
-                    onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                    rows="3"
-                    placeholder="Descripción corta del proyecto..."
-                  />
-                </div>
-              </>
-            ) : (
-              // Inglés
-              <>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">
-                    Title (EN)
-                  </label>
-                  <input
-                    name="title_en"
-                    value={form.title_en}
-                    onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                    placeholder="e.g. E-commerce Dashboard"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">
-                    Description (EN)
-                  </label>
-                  <textarea
-                    name="description_en"
-                    value={form.description_en}
-                    onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                    rows="3"
-                    placeholder="Short project description..."
-                  />
-                </div>
-              </>
-            )}
-
-            {/* Separador */}
-            <hr className="border-blue-200/50 my-4" />
-
-            {/* Campos comunes */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="col-span-1 md:col-span-2">
-                <ImageUpload
-                  value={form.image}
-                  onChange={(url) =>
-                    setForm((prev) => ({ ...prev, image: url }))
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">
-                  Tecnologías (Separa por comas)
-                </label>
-                <input
-                  name="technologies"
-                  value={form.technologies}
-                  onChange={handleChange}
-                  className="w-full p-2 border border-gray-300 rounded outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Ej: React, Node.js, Tailwind"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">
-                  Enlace Repositorio / Demo
-                </label>
-                <input
-                  name="link"
-                  value={form.link}
-                  onChange={handleChange}
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                  placeholder="https://github.com/..."
-                />
-              </div>
-            </div>
-
-            {/* Botones */}
-            <div className="flex gap-3 pt-4">
-              <button
-                type="submit"
-                className={`px-4 py-2 text-white rounded shadow-sm font-medium transition ${
-                  editingId
-                    ? "bg-indigo-600 hover:bg-indigo-700"
-                    : "bg-blue-600 hover:bg-blue-700"
-                }`}
-              >
-                {editingId ? "Actualizar Proyecto" : "Crear Proyecto"}
-              </button>
-              <button
-                type="button"
-                onClick={resetForm}
-                className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-50 transition font-medium"
-              >
-                Cancelar
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* Listado de proyectos */}
-      {projects.length === 0 && !isFormOpen ? (
+      {/* Tarjetas */}
+      {projects.length === 0 ? (
         <p className="text-gray-400 text-center py-10 italic">
           No tienes proyectos. ¡Añade uno!
         </p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {projects.map((project) => (
-            <div
+            <AdminItemCard
               key={project.id}
-              className="group border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition duration-300 bg-white flex flex-col"
-            >
-              <div className="h-48 bg-gray-100 w-full relative overflow-hidden">
-                {project.image ? (
-                  <img
-                    src={project.image}
-                    alt={project.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                  />
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                    <span className="text-4xl mb-2">📷</span>
-                  </div>
-                )}
-                {/* Badge de idioma disponible (opcional) */}
-                {project.title_en && (
-                  <span className="absolute top-2 right-2 bg-black/50 text-white text-[10px] font-bold px-2 py-0.5 rounded backdrop-blur-md">
-                    EN / ES
+              title={project.title}
+              subtitle={project.title_en ? `🇺🇸 ${project.title_en}` : null}
+              image={project.image}
+              withImageSection={true}
+              // Badges superiores (PDF, Idioma)
+              topBadges={
+                <>
+                  <span
+                    className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${
+                      project.isVisibleInPdf
+                        ? "bg-blue-50 text-blue-700 border-blue-200"
+                        : "bg-gray-100 text-gray-400 border-gray-200"
+                    }`}
+                  >
+                    PDF: {project.isVisibleInPdf ? "SÍ" : "NO"}
                   </span>
-                )}
-              </div>
-              <div className="p-5 flex-1 flex flex-col">
-                <h3 className="font-bold text-lg mb-1 text-gray-800">
-                  {project.title}
-                </h3>
-                {/* Subtítulo en inglés si existe */}
-                {project.title_en && (
-                  <p className="text-xs text-gray-400 mb-2 font-medium">
-                    🇺🇸 {project.title_en}
-                  </p>
-                )}
-
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {project.techStack?.map((tech, i) => (
-                    <span
-                      key={i}
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getTechColor(
-                        tech,
-                      )}`}
-                    >
-                      {tech}
+                  {project.title_en && (
+                    <span className="bg-black/80 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                      EN/ES
                     </span>
-                  ))}
-                </div>
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                  {project.description}
-                </p>
-
-                <div className="mt-auto flex justify-end gap-2 pt-4 border-t border-gray-100">
-                  <button
-                    onClick={() => startEditing(project)}
-                    className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded"
-                  >
-                    ✏️
-                  </button>
-                  <button
-                    onClick={() => setItemToDelete(project)}
-                    className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded"
-                  >
-                    🗑️
-                  </button>
-                </div>
-              </div>
-            </div>
+                  )}
+                </>
+              }
+              // Tags del Tech Stack
+              tags={project.techStack?.map((tech) => ({
+                text: tech,
+                colorClass: getTechColor(tech),
+              }))}
+              // Acciones
+              onEdit={() => startEditing(project)}
+              onDelete={() => setItemToDelete(project)}
+            >
+              {/* Contenido (Descripción) */}
+              {project.description}
+            </AdminItemCard>
           ))}
         </div>
       )}
 
-      {/* Modal de borrado */}
-      {itemToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden">
-            <div className="p-6">
-              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4 mx-auto">
-                <span className="text-2xl">⚠️</span>
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 text-center mb-2">
-                ¿Eliminar Proyecto?
-              </h3>
-              <p className="text-gray-500 text-center text-sm mb-6">
-                Se eliminará <strong>"{itemToDelete.title}"</strong>.
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setItemToDelete(null)}
-                  className="flex-1 px-4 py-2 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={confirmDelete}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition shadow-md"
-                >
-                  Eliminar
-                </button>
-              </div>
-            </div>
+      {/* Modal formulario */}
+      <Modal
+        isOpen={isFormOpen}
+        onClose={handleCloseModal}
+        className={
+          editingId
+            ? "bg-indigo-50 border-indigo-100"
+            : "bg-blue-50 border-blue-100"
+        }
+      >
+        <div className="flex justify-between items-start mb-6">
+          <h3
+            className={`font-bold text-xl ${editingId ? "text-indigo-900" : "text-blue-900"}`}
+          >
+            {editingId ? "✏️ Editar Proyecto" : "✨ Añadir Nuevo Proyecto"}
+          </h3>
+          <div className="flex bg-white/50 rounded-lg p-1 text-sm font-medium border border-blue-200">
+            <button
+              type="button"
+              onClick={() => setActiveTab("es")}
+              className={`px-3 py-1 rounded-md transition-all ${activeTab === "es" ? "bg-white text-blue-700 shadow-sm font-bold" : "text-gray-500 hover:text-gray-700"}`}
+            >
+              Español
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("en")}
+              className={`px-3 py-1 rounded-md transition-all ${activeTab === "en" ? "bg-white text-blue-700 shadow-sm font-bold" : "text-gray-500 hover:text-gray-700"}`}
+            >
+              Inglés
+            </button>
           </div>
         </div>
-      )}
+
+        <form onSubmit={handleSave} className="space-y-4">
+          {activeTab === "es" ? (
+            <>
+              <FormInput
+                label="Título (ES)"
+                name="title"
+                value={form.title}
+                onChange={handleChange}
+                color={themeColor}
+              />
+              <FormTextarea
+                label="Descripción (ES)"
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                rows={3}
+                color={themeColor}
+              />
+            </>
+          ) : (
+            <>
+              <FormInput
+                label="Title (EN)"
+                name="title_en"
+                value={form.title_en}
+                onChange={handleChange}
+                color={themeColor}
+              />
+              <FormTextarea
+                label="Description (EN)"
+                name="description_en"
+                value={form.description_en}
+                onChange={handleChange}
+                rows={3}
+                color={themeColor}
+              />
+            </>
+          )}
+
+          <hr className={`border-${themeColor}-200/50 my-4`} />
+
+          <div className="col-span-1 md:col-span-2">
+            <ImageUpload
+              value={form.image}
+              onChange={(url) => setField("image", url)}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormInput
+              label="Tecnologías (Separa por comas)"
+              name="technologies"
+              value={form.technologies}
+              onChange={handleChange}
+              color={themeColor}
+            />
+            <FormInput
+              label="Enlace Repositorio / Demo"
+              name="link"
+              value={form.link}
+              onChange={handleChange}
+              color={themeColor}
+            />
+          </div>
+
+          <PdfVisibilityToggle
+            checked={form.isVisibleInPdf}
+            onChange={(checked) => setField("isVisibleInPdf", checked)}
+            color={themeColor}
+            label="Incluir este proyecto en el CV (PDF)"
+          />
+
+          <div
+            className={`flex gap-3 pt-4 border-t border-${themeColor}-200 mt-6`}
+          >
+            <button
+              type="submit"
+              className={`px-6 py-2.5 text-white rounded-lg shadow-sm font-bold transition ${editingId ? "bg-indigo-600 hover:bg-indigo-700" : "bg-blue-600 hover:bg-blue-700"}`}
+            >
+              {editingId ? "Actualizar" : "Crear"}
+            </button>
+            <button
+              type="button"
+              onClick={handleCloseModal}
+              className="px-6 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-bold"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Modal borrado */}
+      <Modal
+        isOpen={!!itemToDelete}
+        onClose={() => setItemToDelete(null)}
+        className="max-w-sm bg-white"
+      >
+        <div className="flex flex-col items-center">
+          <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4">
+            <span className="text-2xl">⚠️</span>
+          </div>
+          <h3 className="text-lg font-bold text-gray-900 text-center mb-2">
+            ¿Eliminar Proyecto?
+          </h3>
+          <p className="text-gray-500 text-center text-sm mb-6">
+            Se eliminará <strong>"{itemToDelete?.title}"</strong>.
+          </p>
+          <div className="flex gap-3 w-full">
+            <button
+              onClick={() => setItemToDelete(null)}
+              className="flex-1 px-4 py-2 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={confirmDelete}
+              className="flex-1 px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition shadow-md"
+            >
+              Eliminar
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

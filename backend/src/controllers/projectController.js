@@ -1,19 +1,17 @@
 const prisma = require("../config/db");
 
-// Obtener todos
 const getProjects = async (req, res) => {
   try {
     const projects = await prisma.project.findMany({
-      orderBy: { id: "desc" },
+      orderBy: { createdAt: "desc" },
     });
     res.json(projects);
   } catch (error) {
-    console.error("Error al obtener proyectos:", error);
+    console.error(error);
     res.status(500).json({ error: "Error al obtener proyectos" });
   }
 };
 
-// Crear
 const createProject = async (req, res) => {
   try {
     const {
@@ -22,18 +20,12 @@ const createProject = async (req, res) => {
       description,
       description_en,
       image,
-      link,
-      technologies,
+      techStack,
+      repoUrl,
+      demoUrl,
+      isVisible,
+      isVisibleInPdf,
     } = req.body;
-
-    // Generación de Slug
-    const slug =
-      title
-        .toLowerCase()
-        .replace(/ /g, "-")
-        .replace(/[^\w-]+/g, "") +
-      "-" +
-      Date.now();
 
     const newProject = await prisma.project.create({
       data: {
@@ -42,21 +34,20 @@ const createProject = async (req, res) => {
         description,
         description_en,
         image,
-        slug,
-        repoUrl: link, // Mapeo importante: frontend 'link' -> backend 'repoUrl'
-        techStack: technologies || [],
-        isVisible: true,
+        techStack,
+        repoUrl,
+        demoUrl,
+        isVisible: isVisible !== undefined ? isVisible : false,
+        isVisibleInPdf: isVisibleInPdf !== undefined ? isVisibleInPdf : true,
       },
     });
-
     res.json(newProject);
   } catch (error) {
-    console.error("Error al crear proyecto:", error);
-    res.status(500).json({ error: "No se pudo crear el proyecto" });
+    console.error(error);
+    res.status(500).json({ error: "Error al crear proyecto" });
   }
 };
 
-// Actualizar
 const updateProject = async (req, res) => {
   const { id } = req.params;
   const {
@@ -65,48 +56,52 @@ const updateProject = async (req, res) => {
     description,
     description_en,
     image,
-    link,
-    technologies,
+    techStack,
+    repoUrl,
+    demoUrl,
     isVisible,
+    isVisibleInPdf,
   } = req.body;
 
   try {
     const updatedProject = await prisma.project.update({
-      where: { id: parseInt(id) }, // Importante: convertir ID a entero
+      where: { id: parseInt(id) },
       data: {
         title,
         title_en,
         description,
         description_en,
         image,
-        repoUrl: link, // Mapeamos link (frontend) a repoUrl (db)
-        techStack: technologies, // Prisma actualizará el array completo
+        techStack,
+        repoUrl,
+        demoUrl,
         isVisible,
+        isVisibleInPdf,
       },
     });
     res.json(updatedProject);
   } catch (error) {
-    console.error("Error actualizando proyecto:", error);
-    // Prisma lanza error si no encuentra el ID
-    res
-      .status(500)
-      .json({ error: "No se pudo actualizar (posible ID inválido)" });
+    console.error(error);
+    res.status(500).json({ error: "Error al actualizar proyecto" });
   }
 };
 
-// Eliminar
 const deleteProject = async (req, res) => {
   const { id } = req.params;
-
   try {
     await prisma.project.delete({
       where: { id: parseInt(id) },
     });
-    res.json({ message: "Proyecto eliminado correctamente" });
+    res.json({ message: "Proyecto eliminado" });
   } catch (error) {
-    console.error("Error eliminando proyecto:", error);
-    res.status(500).json({ error: "No se pudo eliminar el proyecto" });
+    console.error(error);
+    res.status(500).json({ error: "Error al eliminar proyecto" });
   }
 };
 
-module.exports = { getProjects, createProject, updateProject, deleteProject };
+module.exports = {
+  getProjects,
+  createProject,
+  updateProject,
+  deleteProject,
+};
