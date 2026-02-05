@@ -11,8 +11,9 @@ export default function Navbar({ profile }) {
 
   // Enlaces reordenados
   const navLinks = [
-    { id: "projects", label: t("nav.projects") || "Proyectos" },
     { id: "about", label: t("nav.about") || "Sobre mí" },
+    { id: "projects", label: t("nav.projects") || "Proyectos" },
+    { id: "skills", label: language === "en" ? "Skills" : "Habilidades" },
     {
       id: "experience",
       label: language === "en" ? "Experience" : "Experiencia",
@@ -22,7 +23,14 @@ export default function Navbar({ profile }) {
 
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ["home", "projects", "about", "experience", "education"];
+      const sections = [
+        "home",
+        "about",
+        "projects",
+        "skills",
+        "experience",
+        "education",
+      ];
       const scrollPosition = window.scrollY + 100;
 
       for (const section of sections) {

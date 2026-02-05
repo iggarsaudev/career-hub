@@ -4,6 +4,8 @@ import Navbar from "../components/Navbar";
 import Timeline from "../components/Timeline";
 import ProjectCard from "../components/ProjectCard";
 import EducationList from "../components/EducationList";
+import Skills from "../components/Skills";
+import Languages from "../components/Languages";
 import { useLanguage } from "../context/LanguageContext";
 
 export default function Home() {
@@ -11,6 +13,8 @@ export default function Home() {
   const [projects, setProjects] = useState([]);
   const [experiences, setExperiences] = useState([]);
   const [educations, setEducations] = useState([]);
+  const [skills, setSkills] = useState([]);
+  const [languages, setLanguages] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const { language } = useLanguage();
@@ -21,22 +25,35 @@ export default function Home() {
       fetch(`${API_URL}/projects`).then((res) => res.json()),
       fetch(`${API_URL}/experience`).then((res) => res.json()),
       fetch(`${API_URL}/education`).then((res) => res.json()),
+      fetch(`${API_URL}/skills`).then((res) => res.json()),
+      fetch(`${API_URL}/languages`).then((res) => res.json()),
     ])
-      .then(([profileData, projectsData, experienceData, educationData]) => {
-        setProfile(profileData);
-        setProjects(projectsData.filter((p) => p.isVisible));
-        setExperiences(
-          Array.isArray(experienceData)
-            ? experienceData.filter((e) => e.isVisible)
-            : [],
-        );
-        setEducations(
-          Array.isArray(educationData)
-            ? educationData.filter((e) => e.isVisible)
-            : [],
-        );
-        setLoading(false);
-      })
+      .then(
+        ([
+          profileData,
+          projectsData,
+          experienceData,
+          educationData,
+          skillsData,
+          languagesData,
+        ]) => {
+          setProfile(profileData);
+          setProjects(projectsData.filter((p) => p.isVisible));
+          setExperiences(
+            Array.isArray(experienceData)
+              ? experienceData.filter((e) => e.isVisible)
+              : [],
+          );
+          setEducations(
+            Array.isArray(educationData)
+              ? educationData.filter((e) => e.isVisible)
+              : [],
+          );
+          setSkills(skillsData);
+          setLanguages(languagesData);
+          setLoading(false);
+        },
+      )
       .catch((err) => {
         console.error(err);
         setLoading(false);
@@ -112,6 +129,22 @@ export default function Home() {
         </div>
       </header>
 
+      {/* Sección sobre mí */}
+      <section
+        id="about"
+        className="bg-white dark:bg-gray-900 py-20 px-6 border-t border-gray-200 dark:border-gray-800 transition-colors duration-300"
+      >
+        <div className="max-w-5xl mx-auto">
+          <h3 className="text-sm font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-6 flex items-center gap-2">
+            <span className="w-8 h-0.5 bg-blue-600 dark:bg-blue-400 inline-block"></span>
+            {language === "en" ? "About Me" : "Sobre mí"}
+          </h3>
+          <p className="text-gray-700 dark:text-gray-300 text-lg leading-loose whitespace-pre-line">
+            {displayBio}
+          </p>
+        </div>
+      </section>
+
       {/* Sección proyectos */}
       <section
         id="projects"
@@ -131,21 +164,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Sección sobre mí */}
-      <section
-        id="about"
-        className="bg-white dark:bg-gray-900 py-20 px-6 border-t border-gray-200 dark:border-gray-800 transition-colors duration-300"
-      >
-        <div className="max-w-5xl mx-auto">
-          <h3 className="text-sm font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-6 flex items-center gap-2">
-            <span className="w-8 h-0.5 bg-blue-600 dark:bg-blue-400 inline-block"></span>
-            {language === "en" ? "About Me" : "Sobre mí"}
-          </h3>
-          <p className="text-gray-700 dark:text-gray-300 text-lg leading-loose whitespace-pre-line">
-            {displayBio}
-          </p>
-        </div>
-      </section>
+      {/* Sección skills e idiomas */}
+      {(skills.length > 0 || languages.length > 0) && (
+        <Skills skills={skills} languages={languages} />
+      )}
 
       {/* Sección experiencia */}
       {experiences.length > 0 && (

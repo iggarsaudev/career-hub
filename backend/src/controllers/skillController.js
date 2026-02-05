@@ -12,9 +12,9 @@ const getSkills = async (req, res) => {
 
 const createSkill = async (req, res) => {
   try {
-    const { name, category, isVisible } = req.body;
+    const { name, category, category_en, isVisible } = req.body;
     const newSkill = await prisma.skill.create({
-      data: { name, category, isVisible },
+      data: { name, category, category_en, isVisible },
     });
     res.json(newSkill);
   } catch (error) {
@@ -26,10 +26,10 @@ const createSkill = async (req, res) => {
 const updateSkill = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, category, isVisible } = req.body;
+    const { name, category, category_en, isVisible } = req.body;
     const updated = await prisma.skill.update({
       where: { id: parseInt(id) },
-      data: { name, category, isVisible },
+      data: { name, category, category_en, isVisible },
     });
     res.json(updated);
   } catch (error) {

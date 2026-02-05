@@ -29,7 +29,7 @@ export default function ProjectsSection({
     description: "",
     description_en: "",
     image: "",
-    link: "",
+    link: "", // Usamos 'link' en el form visualmente
     technologies: "",
     isVisibleInPdf: true,
   };
@@ -37,6 +37,17 @@ export default function ProjectsSection({
   // Usamos el hook personalizado
   const { form, handleChange, setField, resetForm, setForm } =
     useForm(initialFormState);
+
+  // Generar Slug Automáticamente
+  const createSlug = (text) => {
+    return text
+      .toString()
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "-") // Espacios a guiones
+      .replace(/[^\w\-]+/g, "") // Quitar caracteres raros
+      .replace(/\-\-+/g, "-"); // Quitar guiones dobles
+  };
 
   // Abrir modal para crear o editar
   const startEditing = (project = null) => {
@@ -48,7 +59,7 @@ export default function ProjectsSection({
         description: project.description || "",
         description_en: project.description_en || "",
         image: project.image || "",
-        link: project.repoUrl || "",
+        link: project.repoUrl || "", // Mapeamos repoUrl a link al cargar
         technologies: project.techStack ? project.techStack.join(", ") : "",
         isVisibleInPdf: project.isVisibleInPdf ?? true,
       });
@@ -74,7 +85,19 @@ export default function ProjectsSection({
         .map((t) => t.trim())
         .filter((t) => t.length > 0);
 
-      const payload = { ...form, technologies: techArray, isVisible: true };
+      const payload = {
+        ...form,
+        techStack: techArray, // BD espera 'techStack'
+        isVisible: true,
+        repoUrl: form.link, // BD espera 'repoUrl', le pasamos lo del input 'link'
+        // Si estamos creando (no editando), generamos el slug
+        slug: editingId ? undefined : createSlug(form.title),
+      };
+
+      // Limpiamos campos que no van a la BD para evitar errores
+      delete payload.technologies;
+      delete payload.link;
+
       const method = editingId ? "PUT" : "POST";
       const url = editingId
         ? `${API_URL}/projects/${editingId}`
@@ -99,9 +122,15 @@ export default function ProjectsSection({
           "success",
         );
       } else {
-        showNotification("Error al guardar", "error");
+        const errorData = await res.json();
+        console.error("Error del servidor:", errorData);
+        showNotification(
+          "Error al guardar: " + (errorData.error || "Desconocido"),
+          "error",
+        );
       }
     } catch (error) {
+      console.error(error);
       showNotification("Error de conexión", "error");
     }
   };

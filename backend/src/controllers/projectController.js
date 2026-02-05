@@ -25,7 +25,16 @@ const createProject = async (req, res) => {
       demoUrl,
       isVisible,
       isVisibleInPdf,
+      slug,
     } = req.body;
+
+    // Validación básica si no viniera el slug (por seguridad)
+    const finalSlug =
+      slug ||
+      title
+        .toLowerCase()
+        .trim()
+        .replace(/[\s\W-]+/g, "-");
 
     const newProject = await prisma.project.create({
       data: {
@@ -39,6 +48,7 @@ const createProject = async (req, res) => {
         demoUrl,
         isVisible: isVisible !== undefined ? isVisible : false,
         isVisibleInPdf: isVisibleInPdf !== undefined ? isVisibleInPdf : true,
+        slug: finalSlug,
       },
     });
     res.json(newProject);
@@ -61,6 +71,7 @@ const updateProject = async (req, res) => {
     demoUrl,
     isVisible,
     isVisibleInPdf,
+    slug,
   } = req.body;
 
   try {
@@ -77,6 +88,7 @@ const updateProject = async (req, res) => {
         demoUrl,
         isVisible,
         isVisibleInPdf,
+        slug,
       },
     });
     res.json(updatedProject);

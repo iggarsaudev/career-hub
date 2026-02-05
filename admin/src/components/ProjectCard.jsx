@@ -60,10 +60,10 @@ export default function ProjectCard({ project }) {
         >
           {language === "en"
             ? project.repoUrl
-              ? "View Code"
+              ? "</> View Code"
               : "Coming Soon"
             : project.repoUrl
-              ? "Ver Código"
+              ? "</> Ver Código"
               : "Próximamente"}
         </a>
       </div>

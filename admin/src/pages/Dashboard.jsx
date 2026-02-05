@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
 
-// Componentes modulares
 import ProfileSection from "../components/admin/ProfileSection";
 import ProjectsSection from "../components/admin/ProjectsSection";
 import ExperienceSection from "../components/admin/ExperienceSection";
 import EducationSection from "../components/admin/EducationSection";
+import SkillsSection from "../components/admin/SkillsSection";
+import LanguageSection from "../components/admin/LanguageSection";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -16,6 +17,9 @@ export default function Dashboard() {
   const [projects, setProjects] = useState([]);
   const [experiences, setExperiences] = useState([]);
   const [educations, setEducations] = useState([]);
+  const [skills, setSkills] = useState([]);
+  const [languages, setLanguages] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState(null);
 
@@ -32,23 +36,36 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [profileRes, projectsRes, experienceRes, educationRes] =
-          await Promise.all([
-            fetch(`${API_URL}/profile`),
-            fetch(`${API_URL}/projects`),
-            fetch(`${API_URL}/experience`),
-            fetch(`${API_URL}/education`),
-          ]);
+        const [
+          profileRes,
+          projectsRes,
+          experienceRes,
+          educationRes,
+          skillsRes,
+          languagesRes,
+        ] = await Promise.all([
+          fetch(`${API_URL}/profile`),
+          fetch(`${API_URL}/projects`),
+          fetch(`${API_URL}/experience`),
+          fetch(`${API_URL}/education`),
+          fetch(`${API_URL}/skills`),
+          fetch(`${API_URL}/languages`),
+        ]);
 
         const profileData = await profileRes.json();
         const projectsData = await projectsRes.json();
         const experienceData = await experienceRes.json();
         const educationData = await educationRes.json();
+        const skillsData = await skillsRes.json();
+        const languagesData = await languagesRes.json();
 
         setProfile(profileData);
         setProjects(projectsData);
         setExperiences(experienceData);
         setEducations(educationData);
+        setSkills(skillsData);
+        setLanguages(languagesData);
+
         setLoading(false);
       } catch (err) {
         console.error(err);
@@ -97,9 +114,15 @@ export default function Dashboard() {
           showNotification={showNotification}
         />
 
-        <EducationSection
-          educations={educations}
-          setEducations={setEducations}
+        <SkillsSection
+          skills={skills}
+          setSkills={setSkills}
+          showNotification={showNotification}
+        />
+
+        <LanguageSection
+          languages={languages}
+          setLanguages={setLanguages}
           showNotification={showNotification}
         />
 
@@ -108,12 +131,18 @@ export default function Dashboard() {
           setExperiences={setExperiences}
           showNotification={showNotification}
         />
+
+        <EducationSection
+          educations={educations}
+          setEducations={setEducations}
+          showNotification={showNotification}
+        />
       </div>
 
       {notification && (
         <div
           className={`fixed bottom-5 right-5 px-6 py-3 rounded-lg shadow-lg text-white font-medium animate-fade-in z-50 flex items-center gap-2 ${
-            notification.type === "error" ? "bg-red-500" : "bg-green-600"
+            notification.type === "error" ? "bg-red-500" : "bg-gray-900"
           }`}
         >
           <span>{notification.type === "error" ? "❌" : "✅"}</span>

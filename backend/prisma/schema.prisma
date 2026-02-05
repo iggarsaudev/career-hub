@@ -114,10 +114,11 @@ model Education {
 
 // Skills
 model Skill {
-  id        Int     @id @default(autoincrement())
-  name      String // Ej: "React", "Node.js"
-  category  String? // Ej: "Frontend", "Backend", "Herramientas"
-  isVisible Boolean @default(true)
+  id          Int     @id @default(autoincrement())
+  name        String // Ej: "React"
+  category    String? // Ej: "Herramientas"
+  category_en String? // (Ej: "Tools")
+  isVisible   Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
