@@ -90,6 +90,7 @@ export default function ProjectsSection({
         techStack: techArray, // BD espera 'techStack'
         isVisible: true,
         repoUrl: form.link, // BD espera 'repoUrl', le pasamos lo del input 'link'
+        demoUrl: form.demo,
         // Si estamos creando (no editando), generamos el slug
         slug: editingId ? undefined : createSlug(form.title),
       };
@@ -309,11 +310,19 @@ export default function ProjectsSection({
               color={themeColor}
             />
             <FormInput
-              label="Enlace Repositorio / Demo"
+              label="Enlace GitHub"
               name="link"
               value={form.link}
               onChange={handleChange}
               color={themeColor}
+            />
+            <FormInput
+              label="Enlace Demo"
+              name="demo"
+              value={form.demo || ""}
+              onChange={handleChange}
+              color={themeColor}
+              placeholder="https://..."
             />
           </div>
 

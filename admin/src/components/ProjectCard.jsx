@@ -1,5 +1,6 @@
 import { getTechColor } from "../utils/colors";
 import { useLanguage } from "../context/LanguageContext";
+import { FaGithub, FaExternalLinkAlt } from "react-icons/fa";
 
 export default function ProjectCard({ project }) {
   const { language } = useLanguage();
@@ -48,24 +49,40 @@ export default function ProjectCard({ project }) {
           {description}
         </p>
 
-        <a
-          href={project.repoUrl || "#"}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`w-full py-2.5 rounded-lg font-bold text-sm transition flex items-center justify-center gap-2 ${
-            project.repoUrl
-              ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200 shadow-md hover:shadow-lg"
-              : "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed"
-          }`}
-        >
-          {language === "en"
-            ? project.repoUrl
-              ? "</> View Code"
-              : "Coming Soon"
-            : project.repoUrl
-              ? "</> Ver Código"
-              : "Próximamente"}
-        </a>
+        <div className="flex flex-col sm:flex-row gap-3 mt-auto">
+          {/* Botón GitHub */}
+          {project.repoUrl && (
+            <a
+              href={project.repoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 py-2.5 rounded-lg font-bold text-sm transition flex items-center justify-center gap-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-gray-200 shadow-md hover:shadow-lg"
+            >
+              <FaGithub />
+              {language === "en" ? "Code" : "Código"}
+            </a>
+          )}
+
+          {/* Botón Demo */}
+          {project.demoUrl && (
+            <a
+              href={project.demoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 py-2.5 rounded-lg font-bold text-sm transition flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg"
+            >
+              <FaExternalLinkAlt />
+              {language === "en" ? "Live Demo" : "Ver Web"}
+            </a>
+          )}
+
+          {/* Si no hay ninguno */}
+          {!project.repoUrl && !project.demoUrl && (
+            <div className="w-full py-2.5 bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 rounded-lg text-center text-sm font-medium cursor-not-allowed">
+              {language === "en" ? "Coming Soon" : "Próximamente"}
+            </div>
+          )}
+        </div>
       </div>
     </article>
   );

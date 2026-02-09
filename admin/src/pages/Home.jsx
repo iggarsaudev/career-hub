@@ -5,7 +5,7 @@ import Timeline from "../components/Timeline";
 import ProjectCard from "../components/ProjectCard";
 import EducationList from "../components/EducationList";
 import Skills from "../components/Skills";
-import Languages from "../components/Languages";
+import Footer from "../components/Footer";
 import { useLanguage } from "../context/LanguageContext";
 
 export default function Home() {
@@ -204,11 +204,7 @@ export default function Home() {
       )}
 
       {/* Footer */}
-      <footer className="bg-gray-50 dark:bg-gray-950 border-t border-gray-200 dark:border-gray-800 py-10 text-center transition-colors duration-300">
-        <p className="text-gray-500 dark:text-gray-400 text-sm">
-          © {new Date().getFullYear()} {profile?.name}.
-        </p>
-      </footer>
+      <Footer profile={profile} />
     </div>
   );
 }
