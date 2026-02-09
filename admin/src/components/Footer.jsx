@@ -6,7 +6,7 @@ export default function Footer({ profile }) {
   const { language } = useLanguage();
 
   const githubLink = "https://github.com/iggarsaudev";
-  const linkedinLink = "www.linkedin.com/in/ignacio-garcia-sausor";
+  const linkedinLink = "https://www.linkedin.com/in/ignacio-garcia-sausor";
 
   return (
     <footer className="bg-gray-900 text-white py-12 mt-auto border-t border-gray-800">
