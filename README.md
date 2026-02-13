@@ -2,7 +2,7 @@
 
 Este repositorio contiene el código fuente de mi portafolio profesional personal. No es solo una página estática, sino una aplicación **Full Stack** completa con un panel de administración (CMS) personalizado para gestionar proyectos, experiencia y habilidades en tiempo real.
 
-🔗 **Demo en vivo:** ([https://tu-url-de-render.onrender.com](https://iggarsaudev-career-hub.vercel.app/))
+🔗 **Demo en vivo:** [https://iggarsaudev-career-hub.vercel.app/](https://iggarsaudev-career-hub.vercel.app/)
 
 ## 🛠️ Tech Stack
 
@@ -12,41 +12,40 @@ El proyecto está construido utilizando una arquitectura moderna y escalable:
 - **React.js** (Vite) - SPA reactiva y rápida.
 - **Tailwind CSS** - Estilizado moderno y Responsive Design.
 - **Context API** - Gestión de estado global (Idiomas, Temas).
-- **React Router** - Navegación declarativa.
+- **React PDF** - Generación dinámica de documentos PDF en el cliente y servidor.
 
 ### Backend
 - **Node.js & Express** - API RESTful robusta.
 - **Prisma ORM** - Gestión de base de datos y tipado seguro.
 - **PostgreSQL** (Neon Tech) - Base de datos relacional en la nube.
-- **JWT (JSON Web Tokens)** - Autenticación segura para el panel de administración.
-
-### DevOps & Herramientas
-- **Render** - Despliegue continuo (CI/CD).
-- **Git & GitHub** - Control de versiones.
+- **Multer & FS** - Gestión de archivos temporales para la generación del CV.
 
 ## ✨ Características Principales
 
-1.  **Panel de Administración Privado:**
+1.  **Panel de Administración Privado (CMS):**
     - Autenticación segura.
     - CRUD completo de Proyectos, Experiencia, Educación y Skills.
     - Los cambios se reflejan instantáneamente en la web pública.
-    
-2.  **Soporte Multi-idioma (i18n):**
-    - Cambio instantáneo entre Español e Inglés gestionado por Contexto.
-    - Base de datos preparada para almacenar contenido en ambos idiomas.
 
-3.  **Diseño UI/UX:**
+2.  **Generación de CV Dinámico:**
+    - **Feature Estrella:** El sistema genera automáticamente un PDF descargable basado en los datos actuales de la base de datos.
+    - Incluye un **Código QR dinámico** en el PDF que enlaza de vuelta al portfolio web.
+    - Sistema de publicación: Permite previsualizar el CV antes de hacerlo público para los reclutadores.
+
+3.  **Soporte Multi-idioma (i18n):**
+    - Cambio instantáneo entre Español e Inglés.
+    - Base de datos preparada para contenido bilingüe.
+
+4.  **Diseño UI/UX:**
     - Modo Oscuro/Claro automático y manual.
     - Diseño totalmente responsivo (Mobile-first).
-    - Animaciones suaves y transiciones.
+    - Notificaciones Toast personalizadas para feedback de usuario.
 
-## 📦 Instalación y Despliegue Local
-
-Si quieres clonar y ejecutar este proyecto localmente:
+## 📦 Instalación Local
 
 1.  **Clonar el repositorio:**
     ```bash
-    git clone [https://github.com/tu-usuario/career-hub.git](https://github.com/tu-usuario/career-hub.git)
+    git clone [https://github.com/iggarsaudev/career-hub.git](https://github.com/iggarsaudev/career-hub.git)
     cd career-hub
     ```
 
