@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLanguage } from "../context/LanguageContext";
 import { useTheme } from "../context/ThemeContext";
+import { API_URL } from "../config";
 
 export default function Navbar({ profile }) {
   const [activeSection, setActiveSection] = useState("home");

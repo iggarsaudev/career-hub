@@ -16,7 +16,8 @@ export default function Home() {
   const [skills, setSkills] = useState([]);
   const [languages, setLanguages] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [notification, setNotification] = useState(null);
   const { language } = useLanguage();
 
   useEffect(() => {
@@ -60,6 +61,64 @@ export default function Home() {
       });
   }, []);
 
+  // Función para mostrar notificaciones
+  const showNotification = (message, type = "error") => {
+    setNotification({ message, type });
+    // La alerta desaparece sola a los 4 segundos
+    setTimeout(() => setNotification(null), 4000);
+  };
+
+  // Función descarga cv
+  const handleDownloadCV = async (e) => {
+    e.preventDefault();
+    setIsDownloading(true);
+
+    try {
+      const res = await fetch(`${API_URL}/cv`);
+
+      // Si el servidor dice que no existe (404), usamos nuestra notificación
+      if (res.status === 404) {
+        showNotification(
+          language === "en"
+            ? "The CV has not been published yet."
+            : "El CV aún no ha sido publicado por el administrador.",
+          "warning",
+        );
+        return;
+      }
+
+      if (!res.ok) throw new Error("Error downloading");
+
+      // Convertimos la respuesta en un archivo descargable
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      // Nombre del archivo limpio
+      a.download = `CV_${profile?.name?.replace(/\s+/g, "_") || "CV_Ignacio_Garcia_Sausor"}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+
+      // Notificación de éxito
+      showNotification(
+        language === "en" ? "Download started!" : "¡Descarga iniciada!",
+        "success",
+      );
+    } catch (error) {
+      console.error(error);
+      showNotification(
+        language === "en"
+          ? "Connection error"
+          : "Error de conexión al intentar descargar",
+        "error",
+      );
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   const displayTitle =
     language === "en" && profile?.title_en ? profile.title_en : profile?.title;
   const displaySummary =
@@ -77,29 +136,86 @@ export default function Home() {
     );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 font-sans text-gray-800 dark:text-gray-100 transition-colors duration-300">
-      <Navbar profile={profile} />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 font-sans text-gray-800 dark:text-gray-100 transition-colors duration-300 relative">
+      {notification && (
+        <div
+          className={`fixed top-24 right-5 z-50 px-6 py-4 rounded-lg shadow-2xl text-white font-medium transform transition-all duration-300 animate-fade-in-down flex items-center gap-3 ${
+            notification.type === "warning"
+              ? "bg-yellow-500"
+              : notification.type === "success"
+                ? "bg-green-600"
+                : "bg-red-500"
+          }`}
+        >
+          <span>
+            {notification.type === "warning"
+              ? "✋"
+              : notification.type === "success"
+                ? "✅"
+                : "❌"}
+          </span>
+          {notification.message}
+          <button
+            onClick={() => setNotification(null)}
+            className="ml-4 opacity-70 hover:opacity-100 font-bold"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      <Navbar profile={profile} onDownloadCV={handleDownloadCV} />
 
       {/* Hero Section */}
       <header
         id="home"
         className="bg-white dark:bg-gray-900 pb-12 pt-28 px-6 border-b border-gray-100 dark:border-gray-800 transition-colors duration-300"
       >
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-8">
-          <div className="relative group">
-            <div className="h-32 w-32 md:h-40 md:w-40 rounded-full bg-blue-600 flex items-center justify-center text-4xl text-white font-bold shadow-xl border-4 border-white dark:border-gray-800 overflow-hidden transition transform group-hover:scale-105">
-              {profile?.avatar ? (
-                <img
-                  src={profile.avatar}
-                  alt="Avatar"
-                  className="w-full h-full object-cover object-top"
-                />
-              ) : profile?.name ? (
-                profile.name.charAt(0)
-              ) : (
-                "I"
-              )}
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-10">
+          <div className="flex flex-col items-center gap-6 shrink-0">
+            {/* Foto */}
+            <div className="relative group">
+              <div className="h-40 w-40 md:h-48 md:w-48 rounded-full bg-blue-600 flex items-center justify-center text-4xl text-white font-bold shadow-xl border-4 border-white dark:border-gray-800 overflow-hidden transition transform group-hover:scale-105">
+                {profile?.avatar ? (
+                  <img
+                    src={profile.avatar}
+                    alt="Avatar"
+                    className="w-full h-full object-cover object-top"
+                  />
+                ) : profile?.name ? (
+                  profile.name.charAt(0)
+                ) : (
+                  "I"
+                )}
+              </div>
             </div>
+
+            <button
+              onClick={handleDownloadCV}
+              disabled={isDownloading}
+              className="px-6 py-2.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700 font-bold rounded-full hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-md flex items-center gap-2 text-sm disabled:opacity-50"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                />
+              </svg>
+              {isDownloading
+                ? language === "en"
+                  ? "Wait..."
+                  : "Espera..."
+                : language === "en"
+                  ? "Download CV"
+                  : "Descargar CV"}
+            </button>
           </div>
 
           <div className="text-center md:text-left flex-1">

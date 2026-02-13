@@ -11,6 +11,7 @@ const experienceRoutes = require("./routes/experienceRoutes");
 const educationRoutes = require("./routes/educationRoutes");
 const skillRoutes = require("./routes/skillRoutes");
 const languageRoutes = require("./routes/languageRoutes");
+const cvRoutes = require("./routes/cv.routes.js");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -28,6 +29,7 @@ app.use("/api/experience", experienceRoutes);
 app.use("/api/education", educationRoutes);
 app.use("/api/skills", skillRoutes);
 app.use("/api/languages", languageRoutes);
+app.use("/api/cv", cvRoutes);
 
 // Ruta Health Check
 app.get("/", (req, res) => {

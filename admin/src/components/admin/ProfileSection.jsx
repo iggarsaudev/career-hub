@@ -36,8 +36,6 @@ export default function ProfileSection({
         avatar: form.avatar,
       };
 
-      console.log("Enviando datos al servidor:", payload); // Para depurar
-
       const res = await fetch(`${API_URL}/profile`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
