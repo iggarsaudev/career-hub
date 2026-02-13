@@ -5,6 +5,8 @@ import Home from "./pages/Home";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { LanguageProvider } from "./context/LanguageContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import CVPreview from "./components/admin/CVPreview";
+import NotFound from "./pages/NotFound";
 
 function App() {
   return (
@@ -28,8 +30,17 @@ function App() {
               }
             />
 
+            <Route
+              path="/cv-preview"
+              element={
+                <ProtectedRoute>
+                  <CVPreview />
+                </ProtectedRoute>
+              }
+            />
+
             {/* Cualquier otra cosa redirige a la home */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </ThemeProvider>

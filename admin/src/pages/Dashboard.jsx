@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+import { FaFilePdf, FaSignOutAlt } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
@@ -92,6 +94,13 @@ export default function Dashboard() {
           <span className="text-sm text-gray-500 hidden sm:block">
             {profile?.email}
           </span>
+          <Link
+            to="/cv-preview"
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg font-bold shadow-md transition transform hover:scale-105"
+          >
+            <FaFilePdf />
+            Generar CV
+          </Link>
           <button
             onClick={handleLogout}
             className="text-sm text-red-600 border border-red-100 px-3 py-1 rounded hover:bg-red-50 transition"

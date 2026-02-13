@@ -7,6 +7,7 @@ export default function Footer({ profile }) {
 
   const githubLink = "https://github.com/iggarsaudev";
   const linkedinLink = "https://www.linkedin.com/in/ignacio-garcia-sausor";
+  const email = "iggarsau@hotmail.com";
 
   return (
     <footer className="bg-gray-900 text-white py-12 mt-auto border-t border-gray-800">
@@ -45,8 +46,15 @@ export default function Footer({ profile }) {
           </a>
         </div>
 
-        {/* Copyright */}
-        <div className="text-gray-500 text-sm flex items-center gap-1">
+        {/* Copyright y Email */}
+        <div className="text-gray-500 text-sm flex flex-col md:flex-row items-center gap-1">
+          <a
+            href={`mailto:${email}`}
+            className="hover:text-blue-400 transition-colors duration-300"
+          >
+            {email}
+          </a>
+          <span className="hidden md:inline">|</span>
           <span>© {new Date().getFullYear()}</span>
         </div>
       </div>

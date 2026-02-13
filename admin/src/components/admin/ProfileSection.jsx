@@ -26,6 +26,7 @@ export default function ProfileSection({
         country: form.country,
         linkedin: form.linkedin,
         website: form.website,
+        portfolioUrl: form.portfolioUrl,
         title: form.title,
         title_en: form.title_en,
         summary: form.summary,
@@ -219,6 +220,18 @@ export default function ProfileSection({
                     name="website"
                     placeholder="https://miweb.com"
                     value={form.website || ""}
+                    onChange={handleChange}
+                    className="w-full mt-1 p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                    URL para el Código QR del PDF
+                  </label>
+                  <input
+                    name="portfolioUrl"
+                    placeholder="https://tudominio.com"
+                    value={form.portfolioUrl || ""}
                     onChange={handleChange}
                     className="w-full mt-1 p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />

@@ -18,6 +18,8 @@ model Profile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  portfolioUrl String? // URL para generar el QR
+
   // Contaco (para el CV PDF) ---
   phone    String? // Ej: "+34 600 000 000"
   city     String? // Ej: "Madrid"

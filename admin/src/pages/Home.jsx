@@ -114,17 +114,6 @@ export default function Home() {
             <p className="text-gray-600 dark:text-gray-300 max-w-2xl text-lg leading-relaxed mb-6">
               {displaySummary}
             </p>
-
-            <div className="flex gap-4 justify-center md:justify-start">
-              <a
-                href={`mailto:${profile?.email}`}
-                className="px-8 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold rounded-lg hover:bg-blue-600 dark:hover:bg-gray-200 transition shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-              >
-                {language === "en"
-                  ? "📬 Send me an email"
-                  : "📬 Envíame un correo"}
-              </a>
-            </div>
           </div>
         </div>
       </header>
