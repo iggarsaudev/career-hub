@@ -80,8 +80,25 @@ export default function Dashboard() {
 
   if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500">
-        Cargando panel...
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 z-50">
+        {/* Logo efecto pulse */}
+        <div className="mb-8 relative">
+          {/* El logo parpadeando suavemente */}
+          <img
+            src="/mi-logo.png"
+            alt="Cargando..."
+            className="w-48 h-auto object-contain animate-pulse drop-shadow-[0_0_10px_rgba(6,182,212,0.3)]"
+          />
+        </div>
+
+        {/* Indicador de carga */}
+        <div className="flex flex-col items-center gap-2">
+          {/* Spinner pequeño y discreto */}
+          <div className="w-6 h-6 border-2 border-gray-700 border-t-cyan-400 rounded-full animate-spin"></div>
+          <span className="text-gray-500 font-mono text-xs tracking-[0.2em] uppercase mt-2">
+            Inicializando sistema...
+          </span>
+        </div>
       </div>
     );
 
