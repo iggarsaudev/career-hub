@@ -28,7 +28,7 @@ const createProject = async (req, res) => {
       slug,
     } = req.body;
 
-    // Validación básica si no viniera el slug (por seguridad)
+    // Validación básica si no viniera el slug
     const finalSlug =
       slug ||
       title

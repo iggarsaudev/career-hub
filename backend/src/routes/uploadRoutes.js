@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require("multer");
 const { uploadImage } = require("../controllers/uploadController");
 
-// Configuración de Multer: Almacenamiento en memoria (RAM)
+// Configuración de Multer
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 

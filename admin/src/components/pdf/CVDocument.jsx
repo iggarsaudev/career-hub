@@ -9,7 +9,7 @@ import {
   Link,
 } from "@react-pdf/renderer";
 
-// --- PALETA DE COLORES ---
+// Paleta de colores
 const colors = {
   sidebarBg: "#1B3864",
   sidebarText: "#FFFFFF",
@@ -19,7 +19,7 @@ const colors = {
   border: "#E5E7EB",
 };
 
-// --- ESTILOS ---
+// Estilos
 const styles = StyleSheet.create({
   page: {
     flexDirection: "row",
@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
     paddingTop: 30,
     paddingBottom: 30,
   },
-  // === BARRA LATERAL ===
+  // Barra lateral
   leftColumn: {
     width: "28%",
     color: colors.sidebarText,
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 
-  // === COLUMNA PRINCIPAL ===
+  // Columna principal
   rightColumn: {
     width: "72%",
     paddingRight: 25,
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     paddingTop: 0,
   },
 
-  // CABECERA
+  // Cabecera
   headerContainer: {
     marginBottom: 15,
     borderBottomWidth: 2,
@@ -152,7 +152,6 @@ const styles = StyleSheet.create({
     lineHeight: 1.4,
   },
 
-  // ESTILOS NUEVOS PARA EXPERIENCIA (TIPO CAPTURA)
   entryContainer: {
     marginBottom: 10,
   },
@@ -160,13 +159,13 @@ const styles = StyleSheet.create({
   entryTitleLine: {
     fontSize: 10,
     fontWeight: "bold",
-    color: "#111827", // Negro casi puro para destacar
+    color: "#111827",
     marginBottom: 2,
   },
   // Línea 2: Fechas
   entryDateLine: {
     fontSize: 9,
-    color: "#4B5563", // Gris para la fecha
+    color: "#4B5563",
     marginBottom: 4,
   },
   description: {
@@ -175,7 +174,7 @@ const styles = StyleSheet.create({
     textAlign: "justify",
     lineHeight: 1.4,
   },
-  // ESTILO PARA EL QR
+  // QR
   qrContainer: {
     alignItems: "center",
     marginTop: 20,
@@ -207,7 +206,6 @@ const formatDate = (dateString) => {
       month: "long",
       year: "numeric",
     });
-    // Quitamos el "de" si prefieres el formato "Abril 2025" (opcional, aquí dejo el estándar)
     return formatted.charAt(0).toUpperCase() + formatted.slice(1);
   } catch (e) {
     return dateString;
@@ -238,10 +236,10 @@ const CVDocument = ({
 }) => (
   <Document>
     <Page size="A4" style={styles.page}>
-      {/* FONDO IZQUIERDA */}
+      {/* Fondo izquierda */}
       <View style={styles.leftColumnBackground} fixed />
 
-      {/* CONTENIDO IZQUIERDA */}
+      {/* Contenido izquierda */}
       <View style={styles.leftColumn}>
         {profile?.avatar && (
           <Image src={profile.avatar} style={styles.profileImage} />
@@ -340,9 +338,9 @@ const CVDocument = ({
         </View>
       </View>
 
-      {/* CONTENIDO DERECHA */}
+      {/* Contenido derecha */}
       <View style={styles.rightColumn}>
-        {/* CABECERA */}
+        {/* Cabecera */}
         <View style={styles.headerContainer}>
           <Text style={styles.name}>{profile?.name}</Text>
           <Text style={styles.jobTitle}>{profile?.title}</Text>
@@ -359,7 +357,7 @@ const CVDocument = ({
           </View>
         )}
 
-        {/* EXPERIENCIA (Nuevo Formato) */}
+        {/* Experiencia */}
         <View style={{ marginBottom: 15 }}>
           <Text style={styles.sectionTitle}>Experiencia Laboral</Text>
           {experience.map((exp) => (
@@ -383,7 +381,7 @@ const CVDocument = ({
           ))}
         </View>
 
-        {/* FORMACIÓN */}
+        {/* Formación */}
         <View>
           <Text style={styles.sectionTitle}>Formación</Text>
           {education.map((edu) => (
