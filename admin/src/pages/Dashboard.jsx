@@ -37,7 +37,23 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
+      const minTimePromise = new Promise((resolve) =>
+        setTimeout(resolve, 2000),
+      );
+
+      const dataPromise = Promise.all([
+        fetch(`${API_URL}/profile`),
+        fetch(`${API_URL}/projects`),
+        fetch(`${API_URL}/experience`),
+        fetch(`${API_URL}/education`),
+        fetch(`${API_URL}/skills`),
+        fetch(`${API_URL}/languages`),
+      ]);
+
       try {
+        const [responses, _] = await Promise.all([dataPromise, minTimePromise]);
+
+        // Desestructuramos las respuestas de la API
         const [
           profileRes,
           projectsRes,
@@ -45,15 +61,9 @@ export default function Dashboard() {
           educationRes,
           skillsRes,
           languagesRes,
-        ] = await Promise.all([
-          fetch(`${API_URL}/profile`),
-          fetch(`${API_URL}/projects`),
-          fetch(`${API_URL}/experience`),
-          fetch(`${API_URL}/education`),
-          fetch(`${API_URL}/skills`),
-          fetch(`${API_URL}/languages`),
-        ]);
+        ] = responses;
 
+        // Convertimos a JSON
         const profileData = await profileRes.json();
         const projectsData = await projectsRes.json();
         const experienceData = await experienceRes.json();
@@ -61,20 +71,21 @@ export default function Dashboard() {
         const skillsData = await skillsRes.json();
         const languagesData = await languagesRes.json();
 
+        // Guardamos en el estado
         setProfile(profileData);
         setProjects(projectsData);
         setExperiences(experienceData);
         setEducations(educationData);
         setSkills(skillsData);
         setLanguages(languagesData);
-
-        setLoading(false);
       } catch (err) {
         console.error(err);
-        setLoading(false);
         showNotification("Error cargando datos", "error");
+      } finally {
+        setLoading(false); // Quitamos el loader solo al final
       }
     };
+
     fetchData();
   }, []);
 

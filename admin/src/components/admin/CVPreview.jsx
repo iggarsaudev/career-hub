@@ -23,15 +23,21 @@ export default function CVPreview() {
 
   useEffect(() => {
     const fetchData = async () => {
+      const minTimePromise = new Promise((resolve) =>
+        setTimeout(resolve, 2000),
+      );
+
+      const dataPromise = Promise.all([
+        fetch(`${API_URL}/profile`).then((res) => res.json()),
+        fetch(`${API_URL}/experience`).then((res) => res.json()),
+        fetch(`${API_URL}/education`).then((res) => res.json()),
+        fetch(`${API_URL}/skills`).then((res) => res.json()),
+        fetch(`${API_URL}/languages`).then((res) => res.json()),
+      ]);
+
       try {
-        const [profile, experience, education, skills, languages] =
-          await Promise.all([
-            fetch(`${API_URL}/profile`).then((res) => res.json()),
-            fetch(`${API_URL}/experience`).then((res) => res.json()),
-            fetch(`${API_URL}/education`).then((res) => res.json()),
-            fetch(`${API_URL}/skills`).then((res) => res.json()),
-            fetch(`${API_URL}/languages`).then((res) => res.json()),
-          ]);
+        const [[profile, experience, education, skills, languages]] =
+          await Promise.all([dataPromise, minTimePromise]);
 
         const urlParaQR =
           profile.portfolioUrl || "https://iggarsaudev-career-hub.vercel.app/";
@@ -51,9 +57,10 @@ export default function CVPreview() {
       } catch (error) {
         console.error("Error cargando datos:", error);
       } finally {
-        setLoading(false);
+        setLoading(false); // Solo aquí quitamos la pantalla de carga
       }
     };
+
     fetchData();
   }, []);
 

@@ -21,43 +21,51 @@ export default function Home() {
   const { language } = useLanguage();
 
   useEffect(() => {
-    Promise.all([
+    const minTimePromise = new Promise((resolve) => setTimeout(resolve, 2000));
+
+    const dataPromise = Promise.all([
       fetch(`${API_URL}/profile`).then((res) => res.json()),
       fetch(`${API_URL}/projects`).then((res) => res.json()),
       fetch(`${API_URL}/experience`).then((res) => res.json()),
       fetch(`${API_URL}/education`).then((res) => res.json()),
       fetch(`${API_URL}/skills`).then((res) => res.json()),
       fetch(`${API_URL}/languages`).then((res) => res.json()),
-    ])
-      .then(
-        ([
+    ]);
+
+    Promise.all([dataPromise, minTimePromise])
+      .then(([dataResults, _]) => {
+        // Desestructuramos los resultados de la API
+        const [
           profileData,
           projectsData,
           experienceData,
           educationData,
           skillsData,
           languagesData,
-        ]) => {
-          setProfile(profileData);
-          setProjects(projectsData.filter((p) => p.isVisible));
-          setExperiences(
-            Array.isArray(experienceData)
-              ? experienceData.filter((e) => e.isVisible)
-              : [],
-          );
-          setEducations(
-            Array.isArray(educationData)
-              ? educationData.filter((e) => e.isVisible)
-              : [],
-          );
-          setSkills(skillsData);
-          setLanguages(languagesData);
-          setLoading(false);
-        },
-      )
-      .catch((err) => {
-        console.error(err);
+        ] = dataResults;
+
+        // Actualizamos los estados
+        setProfile(profileData);
+        setProjects(projectsData.filter((p) => p.isVisible));
+        setExperiences(
+          Array.isArray(experienceData)
+            ? experienceData.filter((e) => e.isVisible)
+            : [],
+        );
+        setEducations(
+          Array.isArray(educationData)
+            ? educationData.filter((e) => e.isVisible)
+            : [],
+        );
+        setSkills(skillsData);
+        setLanguages(languagesData);
+
+        // Finalizamos la carga
         setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error cargando datos:", err);
+        setLoading(false); // Aseguramos quitar el loader incluso si hay error
       });
   }, []);
 
